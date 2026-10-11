@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Episode, Tag, EpisodeStatus } from "@/lib/types/episode";
 import { AISummaryEditor } from "./AISummaryEditor";
@@ -49,6 +49,13 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
   const [saving, setSaving] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [origin, setOrigin] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   // Validate Instagram URL on change
   const handleUrlChange = (val: string) => {
@@ -157,12 +164,12 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
     }
   };
 
-  const permalinkUrl = typeof window !== "undefined" && initialEpisode?.slug
-    ? `${window.location.origin}/episodes/${initialEpisode.slug}`
-    : `/episodes/day-${String(dayNumber).padStart(3, "0")}`;
+  const slugPath = `/episodes/${initialEpisode?.slug || `day-${String(dayNumber).padStart(3, "0")}`}`;
+  const permalinkUrl = origin ? `${origin}${slugPath}` : slugPath;
 
   const copyPermalink = () => {
-    navigator.clipboard.writeText(permalinkUrl);
+    const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${slugPath}` : permalinkUrl;
+    navigator.clipboard.writeText(fullUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
@@ -235,7 +242,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
         <div className="bg-navy-950 border border-navy-800 rounded-xl p-3.5 flex items-center justify-between text-xs">
           <div className="flex items-center space-x-2 text-slate-400 truncate mr-2">
             <span className="font-semibold text-slate-300">Public URL:</span>
-            <span className="text-brand-sky truncate">{permalinkUrl}</span>
+            <span className="text-brand-sky truncate" suppressHydrationWarning>{permalinkUrl}</span>
           </div>
           <button
             type="button"
