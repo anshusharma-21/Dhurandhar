@@ -1,19 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/navigation";
 import { usePathname } from "next/navigation";
 import { 
-  Flame, 
   Tv, 
-  TrendingUp, 
-  Info, 
   User, 
   Menu, 
   X, 
-  ShieldCheck,
-  ExternalLink 
+  ShieldCheck
 } from "lucide-react";
+import { DhurandharWordmark } from "@/components/brand/DhurandharWordmark";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -32,84 +29,87 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-navy-950/90 backdrop-blur-md border-b border-navy-700/80">
+    <header className="sticky top-0 z-50 bg-[#fcfbf7]/90 dark:bg-[#07090e]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 transition-colors duration-150">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand Logo & Title */}
-          <a href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-sky via-cyan-500 to-amber-500 p-0.5 flex items-center justify-center shadow-subtle group-hover:shadow-goldGlow transition-all">
-              <div className="w-full h-full bg-navy-950 rounded-[10px] flex items-center justify-center">
-                <Flame className="w-5 h-5 text-brand-gold group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <div>
-              <span className="text-xs uppercase tracking-widest font-semibold text-brand-gold block">
-                ROAD TO ₹30CR
-              </span>
-              <span className="text-base font-bold tracking-tight text-white group-hover:text-brand-sky transition-colors">
-                PROJECT DHURANDHAR
-              </span>
-            </div>
+        <div className="flex items-center justify-between h-20">
+          {/* Brand Wordmark (Exact DHURANDHAR Identity) */}
+          <a
+            href="/"
+            className="flex items-center group py-2"
+            aria-label="DHURANDHAR Home"
+          >
+            <DhurandharWordmark size="md" />
           </a>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1" aria-label="Main Navigation">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(link.href)
-                    ? "bg-navy-800 text-brand-cyan border border-navy-700 shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-navy-900"
-                }`}
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
+                    active
+                      ? "bg-slate-200/80 dark:bg-white/10 text-amber-700 dark:text-amber-400 font-semibold"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+                  }`}
+                >
+                  {link.label}
+                </a>
+              );
+            })}
           </nav>
 
-          {/* Action CTAs */}
+          {/* Desktop Action Controls & Theme Toggle */}
           <div className="hidden md:flex items-center space-x-3">
+            {/* Theme Toggle Button */}
+            <ThemeToggle />
+
+            {/* Watch Latest CTA */}
             <a
               href="/episodes"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-brand-sky to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm shadow-subtle hover:shadow-cyan-500/20 transition-all"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-sm hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] transition-all"
             >
-              <Tv className="w-4 h-4 text-slate-950" />
+              <Tv className="w-3.5 h-3.5 text-slate-950" />
               <span>Watch Latest</span>
             </a>
 
+            {/* Admin Console Link */}
             <a
               href="/admin"
-              className="inline-flex items-center space-x-1 text-slate-400 hover:text-white px-2.5 py-2 rounded-lg text-xs font-medium border border-navy-700 hover:bg-navy-900 transition-colors"
-              title="Admin Console"
+              className="inline-flex items-center space-x-1 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2.5 py-2 rounded-xl text-xs font-medium border border-slate-300/80 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              title="Admin Portal"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-cyan" />
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
               <span>Admin</span>
             </a>
 
+            {/* Account / Sign In */}
             <a
               href="/sign-in"
-              className="p-2 text-slate-400 hover:text-white hover:bg-navy-800 rounded-lg transition-colors"
-              title="Sign in / Account"
+              className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-colors border border-slate-300/80 dark:border-white/10"
+              title="Sign in / Community Account"
             >
-              <User className="w-5 h-5" />
+              <User className="w-4 h-4" />
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Actions & Menu Toggle */}
           <div className="flex md:hidden items-center space-x-2">
+            <ThemeToggle />
             <a
               href="/episodes"
-              className="text-xs bg-brand-sky text-slate-950 font-bold px-3 py-1.5 rounded-md"
+              className="text-xs bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg uppercase tracking-wide"
             >
-              Latest Day
+              Latest
             </a>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-navy-800 focus:outline-none"
+              className="p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
               aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -117,28 +117,29 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Accessible Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-navy-900 border-b border-navy-700 px-4 pt-3 pb-5 space-y-2">
+        <div className="md:hidden bg-[#fcfbf7] dark:bg-[#0c1017] border-b border-slate-200 dark:border-white/10 px-4 pt-3 pb-6 space-y-2 shadow-xl">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-lg text-base font-medium ${
+              className={`block px-3.5 py-2.5 rounded-xl text-base font-medium transition-colors ${
                 isActive(link.href)
-                  ? "bg-navy-800 text-brand-cyan font-semibold"
-                  : "text-slate-300 hover:bg-navy-800 hover:text-white"
+                  ? "bg-slate-200/80 dark:bg-white/10 text-amber-700 dark:text-amber-400 font-semibold"
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5"
               }`}
             >
               {link.label}
             </a>
           ))}
-          <div className="pt-3 border-t border-navy-800 flex items-center justify-between">
+
+          <div className="pt-4 mt-3 border-t border-slate-200 dark:border-white/10 flex items-center justify-between">
             <a
               href="/sign-in"
               onClick={() => setMobileMenuOpen(false)}
-              className="inline-flex items-center space-x-2 text-sm text-slate-300 hover:text-white"
+              className="inline-flex items-center space-x-2 text-sm text-slate-700 dark:text-slate-300 hover:text-amber-500"
             >
               <User className="w-4 h-4" />
               <span>Account / Sign In</span>
@@ -146,9 +147,10 @@ export function Navbar() {
             <a
               href="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              className="text-xs text-brand-cyan bg-navy-800 px-3 py-1.5 rounded-md border border-navy-700"
+              className="inline-flex items-center space-x-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20"
             >
-              Admin Portal
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Admin Portal</span>
             </a>
           </div>
         </div>

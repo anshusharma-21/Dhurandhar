@@ -6,6 +6,7 @@ import { Episode, Tag, EpisodeStatus } from "@/lib/types/episode";
 import { AISummaryEditor } from "./AISummaryEditor";
 import { InstagramEmbed } from "../episode/InstagramEmbed";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
+import { BackButton } from "@/components/navigation/BackButton";
 import { 
   Tv, 
   Save, 
@@ -179,9 +180,12 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
       {/* Top Action Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-navy-800 gap-4">
         <div>
-          <span className="text-xs uppercase font-bold text-brand-gold tracking-wider">
-            {initialEpisode ? "EDIT EPISODE" : "NEW DAILY VLOG"}
-          </span>
+          <div className="flex items-center space-x-3 mb-2">
+            <BackButton fallbackUrl="/admin/episodes" label="← Back to Admin Episodes" />
+            <span className="text-xs uppercase font-bold text-brand-gold tracking-wider">
+              {initialEpisode ? "EDIT EPISODE" : "NEW DAILY VLOG"}
+            </span>
+          </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Day {dayNumber}: {title || "Untitled Episode"}
           </h1>

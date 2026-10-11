@@ -10,13 +10,9 @@ import {
   ChevronRight, 
   Calendar, 
   Sparkles, 
-  Share2, 
-  ArrowLeft, 
-  ArrowRight, 
-  FileText, 
-  Users,
-  Building2 
+  FileText 
 } from "lucide-react";
+import { BackButton } from "@/components/navigation/BackButton";
 
 export const dynamic = "force-dynamic";
 
@@ -97,14 +93,17 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* 1. Breadcrumb */}
-      <nav className="flex items-center space-x-2 text-xs text-slate-400" aria-label="Breadcrumb">
-        <a href="/" className="hover:text-white transition-colors">Home</a>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-        <a href="/episodes" className="hover:text-white transition-colors">Episodes</a>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="text-brand-gold font-medium truncate">Day {episode.day_number}</span>
-      </nav>
+      {/* 1. Breadcrumb & Contextual Back Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <nav className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400" aria-label="Breadcrumb">
+          <a href="/" className="hover:text-slate-900 dark:hover:text-white transition-colors">Home</a>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
+          <a href="/episodes" className="hover:text-slate-900 dark:hover:text-white transition-colors">Episodes</a>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
+          <span className="text-amber-700 dark:text-amber-400 font-medium truncate">Day {episode.day_number}</span>
+        </nav>
+        <BackButton fallbackUrl="/episodes" label="Back to Episodes" />
+      </div>
 
       {/* 2. Episode Header */}
       <header className="space-y-4">

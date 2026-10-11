@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Building2
 } from "lucide-react";
+import { DhurandharWordmark } from "@/components/brand/DhurandharWordmark";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -44,12 +45,10 @@ export function AdminSidebar() {
       <div>
         {/* Workspace Brand */}
         <div className="p-6 border-b border-navy-800">
-          <a href="/admin" className="block">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-brand-gold block">
-              CONSOLE • ROAD TO 30CR
-            </span>
-            <span className="text-base font-extrabold text-white tracking-tight">
-              Dhurandhar Admin
+          <a href="/admin" className="block group">
+            <DhurandharWordmark size="sm" />
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-500 block mt-1.5">
+              CONTROL CONSOLE
             </span>
           </a>
         </div>

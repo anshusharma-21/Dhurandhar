@@ -3,20 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #070b12;
-  --bg-secondary: #0f172a;
-  --bg-card: #111827;
-  --bg-border: #1e293b;
+  /* Day / Light Mode: Warm Ivory & Charcoal */
+  --bg-primary: #fcfbf7;
+  --bg-secondary: #f4efe4;
+  --bg-card: #ffffff;
+  --bg-border: #e6dfcf;
+  --text-primary: #12151b;
+  --text-secondary: #4a5160;
+  --text-muted: #737c8e;
+  --brand-cyan: #0284c7;
+  --brand-sky: #0ea5e9;
+  --brand-gold: #b38628;
+  color-scheme: light;
+}
+
+html.dark {
+  /* Night / Dark Mode: Deep Charcoal, Near-Black & Refined Warm Gold */
+  --bg-primary: #07090e;
+  --bg-secondary: #0d1118;
+  --bg-card: #111622;
+  --bg-border: #1f2738;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
-  --brand-cyan: #06b6d4;
+  --brand-cyan: #38bdf8;
   --brand-sky: #0ea5e9;
   --brand-gold: #f59e0b;
+  color-scheme: dark;
 }
 
 html {
-  color-scheme: dark;
   scroll-behavior: smooth;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
@@ -32,7 +48,7 @@ body {
 
 /* Accessible visible focus ring for keyboard navigation (AC-21) */
 :focus-visible {
-  outline: 2px solid var(--brand-sky);
+  outline: 2px solid var(--brand-gold);
   outline-offset: 2px;
 }
 
@@ -47,6 +63,7 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
 /* Editorial line clamps and styling */
 .line-clamp-2 {
   display: -webkit-box;
@@ -71,14 +88,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--bg-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--text-muted);
 }

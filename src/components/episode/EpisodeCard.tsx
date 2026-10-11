@@ -1,7 +1,7 @@
 import React from "react";
 import { Episode } from "@/lib/types/episode";
 import { formatDate } from "@/lib/utils/formatters";
-import { Calendar, MessageSquare, ArrowRight, Play, Sparkles } from "lucide-react";
+import { Calendar, MessageSquare, ArrowRight, Sparkles } from "lucide-react";
 
 interface EpisodeCardProps {
   episode: Episode;
@@ -13,16 +13,16 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
     : formatDate(episode.created_at);
 
   return (
-    <article className="group bg-navy-900/90 hover:bg-navy-850 border border-navy-800 hover:border-navy-700 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-subtle hover:shadow-card">
-      {/* Top Banner / Day Badge */}
-      <div className="p-5 pb-3">
+    <article className="group bg-white/90 dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#121824] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/40 rounded-2xl overflow-hidden transition-all duration-200 flex flex-col justify-between shadow-sm dark:shadow-card">
+      {/* Top Content / Day Badge */}
+      <div className="p-6 pb-4">
         <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-xs font-bold tracking-wide">
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-400 text-xs font-bold tracking-wide">
             <span>Day {episode.day_number}</span>
           </div>
 
-          <div className="flex items-center space-x-1.5 text-xs text-slate-400">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <Calendar className="w-3.5 h-3.5" />
             <time dateTime={episode.published_at || episode.created_at}>
               {publishedDate}
             </time>
@@ -30,24 +30,24 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-bold text-white group-hover:text-brand-cyan transition-colors leading-snug line-clamp-2 mb-2.5">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors leading-snug line-clamp-2 mb-2.5">
           <a href={`/episodes/${episode.slug}`}>
             {episode.title}
           </a>
         </h3>
 
-        {/* Summary Excerpt (2-3 lines) */}
-        <p className="text-xs text-slate-300 leading-relaxed line-clamp-3 mb-4">
+        {/* Summary Excerpt */}
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 mb-4">
           {episode.summary}
         </p>
 
         {/* Tags */}
         {episode.tags && episode.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-2">
             {episode.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag.id}
-                className="text-[11px] px-2 py-0.5 rounded-md bg-navy-950 text-slate-400 border border-navy-800"
+                className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#171e2c] text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-white/5"
               >
                 #{tag.label}
               </span>
@@ -57,24 +57,24 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
       </div>
 
       {/* Card Footer */}
-      <div className="px-5 py-3.5 bg-navy-950/60 border-t border-navy-800/80 flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-3 text-slate-400">
-          <span className="inline-flex items-center space-x-1 text-slate-400">
-            <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
+      <div className="px-6 py-3.5 bg-slate-50/80 dark:bg-[#090d14] border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between text-xs">
+        <div className="flex items-center space-x-3 text-slate-500 dark:text-slate-400">
+          <span className="inline-flex items-center space-x-1">
+            <MessageSquare className="w-3.5 h-3.5" />
             <span>{episode.comments_count || 0}</span>
           </span>
 
           {episode.summary_status === "approved" && (
-            <span className="inline-flex items-center space-x-1 text-[11px] text-teal-400 bg-teal-950/40 px-2 py-0.5 rounded border border-teal-800/40">
+            <span className="inline-flex items-center space-x-1 text-[11px] text-amber-700 dark:text-amber-400 font-medium">
               <Sparkles className="w-3 h-3" />
-              <span>Summary Verified</span>
+              <span>Verified Log</span>
             </span>
           )}
         </div>
 
         <a
           href={`/episodes/${episode.slug}`}
-          className="inline-flex items-center space-x-1 text-brand-sky group-hover:text-cyan-400 font-semibold group-hover:translate-x-0.5 transition-all"
+          className="inline-flex items-center space-x-1 text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 font-bold group-hover:translate-x-0.5 transition-all"
         >
           <span>Read vlog</span>
           <ArrowRight className="w-3.5 h-3.5" />

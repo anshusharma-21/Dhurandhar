@@ -1,43 +1,54 @@
 import React from "react";
-import { MessageSquare, ArrowRight, ShieldCheck, UserCheck } from "lucide-react";
+import { ArrowRight, Tv, MessageSquare } from "lucide-react";
 import { InstagramIcon as Instagram } from "@/components/icons/InstagramIcon";
 
 export function CommunityCTA() {
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
-      <div className="bg-gradient-to-r from-navy-900 via-navy-850 to-navy-900 border border-navy-800 rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-card">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-sky/10 border border-brand-sky/30 text-brand-sky text-xs font-semibold mb-4">
-            <UserCheck className="w-3.5 h-3.5" />
-            <span>Join the Dhurandhar Community</span>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24" aria-labelledby="closing-cta-heading">
+      <div className="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-400/10 dark:via-transparent dark:to-transparent bg-white/90 dark:bg-[#0e131d] border border-amber-500/30 dark:border-amber-400/20 rounded-3xl p-8 sm:p-14 lg:p-16 relative overflow-hidden shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        
+        {/* Subtle Decorative Gold Ambient Accent */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-3xl space-y-6 relative z-10">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-400 text-xs font-bold uppercase tracking-[0.2em]">
+            <span>THE PUBLIC INVITATION</span>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
-            Follow the journey, debate the decisions, and share lessons.
+          <h2 id="closing-cta-heading" className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+            Follow the journey as it happens.
           </h2>
 
-          <p className="text-sm text-slate-300 leading-relaxed mb-8">
-            Create an account to join the discussion on daily episodes. First-time submissions are reviewed by our team to maintain constructive, spam-free dialogue.
+          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
+            Watch each daily episode, critique the business decisions in the community discussion, and track our financial progress towards ₹30 crore in revenue.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+            <a
+              href="/episodes"
+              className="inline-flex items-center space-x-2.5 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200"
+            >
+              <Tv className="w-4 h-4 text-slate-950" />
+              <span>EXPLORE ALL EPISODES</span>
+              <ArrowRight className="w-4 h-4 text-slate-950 ml-0.5" />
+            </a>
+
             <a
               href="/register"
-              className="inline-flex items-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-brand-sky to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-slate-950 font-bold rounded-xl text-xs shadow-subtle transition-all"
+              className="inline-flex items-center space-x-2.5 px-8 py-4 bg-white/80 dark:bg-black/60 hover:bg-white dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold rounded-xl text-xs sm:text-sm uppercase tracking-wider border border-slate-300/80 dark:border-white/15 transition-all duration-200"
             >
-              <MessageSquare className="w-4 h-4 text-slate-950" />
-              <span>Create Free Account to Comment</span>
-              <ArrowRight className="w-4 h-4 text-slate-950" />
+              <MessageSquare className="w-4 h-4 text-amber-500" />
+              <span>JOIN COMMUNITY DISCUSSION</span>
             </a>
 
             <a
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 px-6 py-3.5 bg-navy-950 hover:bg-navy-900 text-slate-200 hover:text-white border border-navy-700 rounded-xl text-xs font-semibold transition-colors"
+              className="inline-flex items-center space-x-2 px-6 py-4 text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 font-semibold text-xs sm:text-sm uppercase tracking-wider transition-colors"
             >
-              <Instagram className="w-4 h-4 text-pink-400" />
-              <span>Follow on Instagram</span>
+              <Instagram className="w-4 h-4" />
+              <span>Instagram Vlogs</span>
             </a>
           </div>
         </div>
