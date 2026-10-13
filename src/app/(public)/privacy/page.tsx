@@ -15,53 +15,53 @@ export default function PrivacyPage() {
           <ShieldCheck className="w-4 h-4 text-cyan-400" />
           <span>Data Protection & Privacy</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
           Privacy Notice
         </h1>
-        <p className="text-sm text-slate-300 leading-relaxed">
+        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           Effective Date: 11 October 2026 • AI Automation Labs LLP ("we", "us", "our")
         </p>
       </div>
 
-      <div className="space-y-6 text-xs sm:text-sm text-slate-300 leading-relaxed">
-        <section className="bg-navy-900 border border-navy-800 rounded-2xl p-6 space-y-3">
-          <h2 className="text-base font-bold text-white">1. Information We Collect</h2>
-          <p className="text-xs text-slate-400">
+      <div className="space-y-6 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-3">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">1. Information We Collect</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             We collect only the minimal information required to authenticate community members and maintain constructive discussions:
           </p>
-          <ul className="list-disc pl-5 space-y-1 text-xs text-slate-400">
+          <ul className="list-disc pl-5 space-y-1 text-xs text-slate-600 dark:text-slate-400">
             <li><strong>Account Details:</strong> Email address and chosen public display name when you register.</li>
             <li><strong>Discussion Data:</strong> Comment texts submitted on episodes.</li>
             <li><strong>Technical Telemetry:</strong> Anonymized server logs for security, abuse detection, and rate limiting.</li>
           </ul>
         </section>
 
-        <section className="bg-navy-900 border border-navy-800 rounded-2xl p-6 space-y-3">
-          <h2 className="text-base font-bold text-white">2. Private Email Guarantee</h2>
-          <p className="text-xs text-slate-400">
+        <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-3">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">2. Private Email Guarantee</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Your registered email address is <strong>never displayed publicly</strong> on episode pages, in API responses, or in page source. Only your public display name is displayed alongside approved comments.
           </p>
         </section>
 
-        <section className="bg-navy-900 border border-navy-800 rounded-2xl p-6 space-y-3">
-          <h2 className="text-base font-bold text-white">3. Third-Party Instagram Embeds & Cookies</h2>
-          <p className="text-xs text-slate-400">
+        <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-3">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">3. Third-Party Instagram Embeds & Cookies</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Our daily episodes feature video players provided by Instagram (Meta Platforms, Inc.). Loading embedded content connects your browser to Instagram servers, which may set or read cookies governed by Meta's privacy policy. You can choose to use our direct link to view videos directly on the Instagram platform.
           </p>
         </section>
 
-        <section className="bg-navy-900 border border-navy-800 rounded-2xl p-6 space-y-3">
-          <h2 className="text-base font-bold text-white">4. AI Processing Safeguards</h2>
-          <p className="text-xs text-slate-400">
+        <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-3">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">4. AI Processing Safeguards</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             Our AI-assisted summaries process only episode transcripts, captions, and administrative notes uploaded by our team. <strong>We do not transmit user account data, comments, or emails to external AI models.</strong>
           </p>
         </section>
 
-        <section className="bg-navy-900 border border-navy-800 rounded-2xl p-6 space-y-3">
-          <h2 className="text-base font-bold text-white">5. Account Deletion & Contact</h2>
-          <p className="text-xs text-slate-400">
+        <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-3">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">5. Account Deletion & Contact</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             You may request deletion of your account and personal data at any time by contacting our administrator at:{" "}
-            <a href="mailto:privacy@automationlabs.online" className="text-brand-sky underline">
+            <a href="mailto:privacy@automationlabs.online" className="text-amber-700 dark:text-brand-sky underline font-semibold">
               privacy@automationlabs.online
             </a>.
           </p>

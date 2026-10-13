@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, User, ArrowRight, AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -29,11 +30,49 @@ export default function RegisterPage() {
         throw new Error("Password must be at least 8 characters long.");
       }
 
-      setSuccess(
-        "Account created! A verification link has been sent to your email. You can browse immediately, and post comments once your email is verified."
-      );
+      if (isSupabaseConfigured && supabase) {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              display_name: displayName.trim(),
+            },
+            emailRedirectTo:
+              typeof window !== "undefined"
+                ? `${window.location.origin}/auth/callback`
+                : undefined,
+          },
+        });
+
+        if (signUpError) {
+          throw signUpError;
+        }
+
+        // Supabase returns an empty identities array when email is already registered and confirmation is enabled
+        if (data?.user && !data?.session && data?.user?.identities && data?.user?.identities?.length === 0) {
+          setError("An account with this email address already exists. Please sign in instead.");
+          return;
+        }
+
+        if (data?.session) {
+          setSuccess("Account created and signed in! Redirecting to episodes...");
+          setTimeout(() => {
+            router.push("/episodes");
+          }, 1500);
+        } else {
+          setSuccess(
+            `Account created! A verification link has been sent to ${email}. Please check your email to verify your account and activate commenting privileges.`
+          );
+        }
+      } else {
+        // Fallback when Supabase credentials have not been configured in .env.local
+        setSuccess(
+          "Account registered in preview mode. To test live Supabase authentication, configure your Supabase URL and Publishable Key in .env.local."
+        );
+      }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to create account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -51,9 +90,19 @@ export default function RegisterPage() {
       </div>
 
       {error && (
-        <div className="p-3.5 bg-red-950/70 border border-red-800 rounded-xl text-xs text-red-200 flex items-center space-x-2">
-          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-          <span>{error}</span>
+        <div className="p-3.5 bg-red-950/70 border border-red-800 rounded-xl text-xs text-red-200 flex items-start space-x-2.5">
+          <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="space-y-2 flex-1">
+            <span className="leading-relaxed block">{error}</span>
+            {error.toLowerCase().includes("sign in") && (
+              <a
+                href="/sign-in"
+                className="inline-block px-3 py-1 bg-brand-sky hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-[11px] transition-colors"
+              >
+                Sign In to Your Account →
+              </a>
+            )}
+          </div>
         </div>
       )}
 

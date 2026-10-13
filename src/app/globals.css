@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 :root {
-  /* Day / Light Mode: Warm Ivory & Charcoal */
-  --bg-primary: #fcfbf7;
-  --bg-secondary: #f4efe4;
+  /* Day / Light Mode: Crisp Executive Editorial (Clean & High-Contrast) */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
   --bg-card: #ffffff;
-  --bg-border: #e6dfcf;
-  --text-primary: #12151b;
-  --text-secondary: #4a5160;
-  --text-muted: #737c8e;
+  --bg-border: #e2e8f0;
+  --text-primary: #090d16;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
   --brand-cyan: #0284c7;
   --brand-sky: #0ea5e9;
-  --brand-gold: #b38628;
+  --brand-gold: #d97706;
   color-scheme: light;
 }
 

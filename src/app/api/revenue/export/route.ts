@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbRepository } from "@/lib/db/repository";
+import { verifyAdminAuth } from "@/lib/auth/admin-guard";
 
 export async function GET(req: NextRequest) {
   try {
+    // Enforce server-side administrator authorization (AC-15, AC-25)
+    const auth = await verifyAdminAuth();
+
+    if (!auth.isAuthenticated || !auth.user) {
+      return NextResponse.json(
+        { error: "Authentication required to export financial ledger." },
+        { status: 401 }
+      );
+    }
+
+    if (!auth.isAdmin) {
+      return NextResponse.json(
+        { error: "Forbidden. Administrator privileges required to export financial ledger." },
+        { status: 403 }
+      );
+    }
+
     const months = await dbRepository.getRevenueMonths(true);
 
     const headers = ["Month Start", "Target Amount (INR)", "Actual Amount (INR)", "Variance (INR)", "Note", "Updated At"];

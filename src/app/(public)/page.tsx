@@ -9,6 +9,7 @@ import { MilestonesTimeline } from "@/components/home/MilestonesTimeline";
 import { EpisodeFeed } from "@/components/home/EpisodeFeed";
 import { LessonsAndExecution } from "@/components/home/LessonsAndExecution";
 import { CommunityCTA } from "@/components/home/CommunityCTA";
+import { ScrollReveal } from "@/components/common/ScrollReveal";
 
 export const revalidate = 60; // ISR revalidation
 
@@ -32,30 +33,42 @@ export default async function HomePage() {
       {/* 1. Cinematic Hero Section */}
       <Hero />
 
-      {/* 2. Visually Powerful ₹30 Crore Mission Progress */}
-      <RevenueSnapshot
-        metrics={revenueMetrics}
-        settings={revenueSettings}
-        milestones={milestones}
-      />
+      {/* 2. Visually Powerful ₹30 Crore Mission Progress (Scroll Revealed) */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <RevenueSnapshot
+          metrics={revenueMetrics}
+          settings={revenueSettings}
+          milestones={milestones}
+        />
+      </ScrollReveal>
 
-      {/* 3. The Journey Manifesto */}
+      {/* 3. The Journey Manifesto (Features Staggered Slide-In From Right) */}
       <TheJourney />
 
-      {/* 4. Latest Featured Published Vlog */}
-      <LatestEpisodeFeature episode={latestEpisode} />
+      {/* 4. Latest Featured Published Vlog (Scroll Revealed) */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <LatestEpisodeFeature episode={latestEpisode} />
+      </ScrollReveal>
 
-      {/* 5. Strategic Roadmap Milestones */}
-      <MilestonesTimeline milestones={milestones} />
+      {/* 5. Strategic Roadmap Milestones (Scroll Revealed) */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <MilestonesTimeline milestones={milestones} />
+      </ScrollReveal>
 
-      {/* 6. Chronological Episode Archive Feed */}
-      <EpisodeFeed episodes={episodes} />
+      {/* 6. Chronological Episode Archive Feed (Scroll Revealed) */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <EpisodeFeed episodes={episodes} />
+      </ScrollReveal>
 
-      {/* 7. Lessons and Real Execution Pillars */}
-      <LessonsAndExecution />
+      {/* 7. Lessons and Real Execution Pillars (Scroll Revealed) */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <LessonsAndExecution />
+      </ScrollReveal>
 
-      {/* 8. Final Public Invitation CTA */}
-      <CommunityCTA />
+      {/* 8. Final Public Invitation CTA (Scroll Revealed) */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <CommunityCTA />
+      </ScrollReveal>
     </div>
   );
 }

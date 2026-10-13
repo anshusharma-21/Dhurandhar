@@ -26,14 +26,14 @@ export default async function RevenuePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
       {/* Header */}
       <div className="max-w-3xl mb-12">
-        <div className="inline-flex items-center space-x-2 text-xs font-semibold text-brand-gold uppercase tracking-wider mb-2">
-          <TrendingUp className="w-4 h-4 text-brand-gold" />
+        <div className="inline-flex items-center space-x-2 text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-[0.2em] mb-2">
+          <TrendingUp className="w-4 h-4 text-amber-500" />
           <span>Financial Accountability</span>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-3">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
           Road to ₹30 Crore Revenue
         </h1>
-        <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
           Real enterprise progress documented monthly. No vanity valuations, no exaggerated projections—only self-reported recognised client revenues and operational milestones.
         </p>
       </div>

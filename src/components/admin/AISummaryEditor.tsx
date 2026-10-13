@@ -85,33 +85,33 @@ export function AISummaryEditor({
   };
 
   return (
-    <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-card space-y-6">
-      <div className="flex items-center justify-between pb-4 border-b border-navy-800">
-        <div className="flex items-center space-x-2 text-brand-sky">
-          <Sparkles className="w-5 h-5 text-cyan-400" />
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+    <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-6 transition-colors">
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
+        <div className="flex items-center space-x-2 text-amber-600 dark:text-amber-400">
+          <Sparkles className="w-5 h-5 text-amber-500" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
             AI Summary & Takeaways Studio
           </h3>
         </div>
-        <span className="text-[11px] px-2.5 py-1 rounded bg-navy-950 text-slate-400 border border-navy-800">
+        <span className="text-[11px] px-2.5 py-1 rounded bg-slate-100 dark:bg-[#070b12] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">
           Model: dhurandhar-synthesizer / Gemini
         </span>
       </div>
 
       {/* Input source checklist */}
-      <div className="bg-navy-950/70 p-4 rounded-xl border border-navy-800/80 text-xs">
-        <span className="font-semibold text-slate-300 block mb-2">Available Source Inputs:</span>
-        <div className="flex flex-wrap gap-4 text-slate-400">
-          <span className={`inline-flex items-center space-x-1.5 ${transcriptText ? "text-teal-400" : "text-slate-600"}`}>
-            <span className={`w-2 h-2 rounded-full ${transcriptText ? "bg-teal-400" : "bg-slate-700"}`} />
+      <div className="bg-slate-50 dark:bg-[#070b12] p-4 rounded-xl border border-slate-200 dark:border-white/10 text-xs transition-colors">
+        <span className="font-semibold text-slate-800 dark:text-slate-200 block mb-2">Available Source Inputs:</span>
+        <div className="flex flex-wrap gap-4 text-slate-500 dark:text-slate-400">
+          <span className={`inline-flex items-center space-x-1.5 ${transcriptText ? "text-teal-700 dark:text-teal-400 font-semibold" : "text-slate-400 dark:text-slate-600"}`}>
+            <span className={`w-2 h-2 rounded-full ${transcriptText ? "bg-teal-500" : "bg-slate-300 dark:bg-slate-700"}`} />
             <span>Transcript ({transcriptText ? `${transcriptText.length} chars` : "None"})</span>
           </span>
-          <span className={`inline-flex items-center space-x-1.5 ${captionText ? "text-teal-400" : "text-slate-600"}`}>
-            <span className={`w-2 h-2 rounded-full ${captionText ? "bg-teal-400" : "bg-slate-700"}`} />
+          <span className={`inline-flex items-center space-x-1.5 ${captionText ? "text-teal-700 dark:text-teal-400 font-semibold" : "text-slate-400 dark:text-slate-600"}`}>
+            <span className={`w-2 h-2 rounded-full ${captionText ? "bg-teal-500" : "bg-slate-300 dark:bg-slate-700"}`} />
             <span>Caption ({captionText ? `${captionText.length} chars` : "None"})</span>
           </span>
-          <span className={`inline-flex items-center space-x-1.5 ${contextNotes ? "text-teal-400" : "text-slate-600"}`}>
-            <span className={`w-2 h-2 rounded-full ${contextNotes ? "bg-teal-400" : "bg-slate-700"}`} />
+          <span className={`inline-flex items-center space-x-1.5 ${contextNotes ? "text-teal-700 dark:text-teal-400 font-semibold" : "text-slate-400 dark:text-slate-600"}`}>
+            <span className={`w-2 h-2 rounded-full ${contextNotes ? "bg-teal-500" : "bg-slate-300 dark:bg-slate-700"}`} />
             <span>Context Notes ({contextNotes ? `${contextNotes.length} chars` : "None"})</span>
           </span>
         </div>
@@ -119,9 +119,9 @@ export function AISummaryEditor({
 
       {/* AC-07 Regeneration Confirmation Warning */}
       {showRegenConfirm && (
-        <div className="bg-amber-950/70 border border-amber-800/80 rounded-xl p-4 text-xs text-amber-200 space-y-3">
-          <div className="flex items-center space-x-2 font-bold text-amber-300">
-            <AlertTriangle className="w-4 h-4" />
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-xs text-amber-900 dark:text-amber-200 space-y-3">
+          <div className="flex items-center space-x-2 font-bold text-amber-700 dark:text-amber-300">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
             <span>Warning: Existing edited summary exists</span>
           </div>
           <p className="leading-relaxed">
@@ -138,7 +138,7 @@ export function AISummaryEditor({
             <button
               type="button"
               onClick={() => setShowRegenConfirm(false)}
-              className="px-3.5 py-1.5 bg-navy-800 hover:bg-navy-700 text-slate-300 rounded-lg text-xs"
+              className="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold"
             >
               Cancel
             </button>
@@ -148,8 +148,8 @@ export function AISummaryEditor({
 
       {/* Error / Insufficient Input Notice (AC-06) */}
       {errorMessage && (
-        <div className="bg-red-950/70 border border-red-800 rounded-xl p-4 text-xs text-red-200 flex items-start space-x-3">
-          <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-xs text-red-800 dark:text-red-200 flex items-start space-x-3">
+          <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
           <p className="leading-relaxed">{errorMessage}</p>
         </div>
       )}
@@ -160,24 +160,24 @@ export function AISummaryEditor({
           type="button"
           onClick={handleGenerateClick}
           disabled={loading}
-          className="inline-flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-brand-sky via-cyan-500 to-sky-500 hover:from-sky-500 hover:to-cyan-400 text-slate-950 font-bold rounded-xl text-xs shadow-subtle disabled:opacity-50 transition-all"
+          className="inline-flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-xs shadow-sm disabled:opacity-50 transition-all"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 text-slate-950" />
           <span>{loading ? "Generating Draft..." : currentSummary ? "Regenerate AI Summary" : "Generate AI Summary"}</span>
         </button>
       </div>
 
       {/* Generated Output Preview */}
       {aiDraft && (
-        <div className="bg-navy-950 rounded-xl border border-navy-800 p-5 space-y-4 text-xs">
-          <div className="flex items-center justify-between pb-3 border-b border-navy-800">
-            <span className="font-semibold text-teal-400">
+        <div className="bg-slate-50 dark:bg-[#070b12] rounded-xl border border-slate-200 dark:border-white/10 p-5 space-y-4 text-xs transition-colors">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
+            <span className="font-semibold text-teal-700 dark:text-teal-400">
               Draft Summary Generated (Source: {aiDraft.sourceType})
             </span>
             <button
               type="button"
               onClick={handleApplyToEpisode}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold rounded-lg text-xs"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Apply to Episode Form</span>
@@ -185,18 +185,18 @@ export function AISummaryEditor({
           </div>
 
           <div>
-            <span className="text-slate-400 font-semibold block mb-1">Generated Summary:</span>
-            <p className="text-slate-200 leading-relaxed bg-navy-900 p-3 rounded-lg border border-navy-800">
+            <span className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">Generated Summary:</span>
+            <p className="text-slate-900 dark:text-slate-200 leading-relaxed bg-white dark:bg-[#0e131d] p-3 rounded-lg border border-slate-200 dark:border-white/10">
               {aiDraft.summary}
             </p>
           </div>
 
           <div>
-            <span className="text-slate-400 font-semibold block mb-1">Key Takeaways:</span>
-            <ul className="space-y-1.5 bg-navy-900 p-3 rounded-lg border border-navy-800">
+            <span className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">Key Takeaways:</span>
+            <ul className="space-y-1.5 bg-white dark:bg-[#0e131d] p-3 rounded-lg border border-slate-200 dark:border-white/10">
               {aiDraft.takeaways.map((t, idx) => (
-                <li key={idx} className="flex items-start space-x-2 text-slate-300">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan shrink-0 mt-1.5" />
+                <li key={idx} className="flex items-start space-x-2 text-slate-800 dark:text-slate-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
                   <span>{t}</span>
                 </li>
               ))}
@@ -204,8 +204,8 @@ export function AISummaryEditor({
           </div>
 
           <div>
-            <span className="text-slate-400 font-semibold block mb-1">SEO Description:</span>
-            <p className="text-slate-300 italic bg-navy-900 p-2 rounded-lg border border-navy-800">
+            <span className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">SEO Description:</span>
+            <p className="text-slate-700 dark:text-slate-300 italic bg-white dark:bg-[#0e131d] p-2 rounded-lg border border-slate-200 dark:border-white/10">
               {aiDraft.seoMetaDescription}
             </p>
           </div>

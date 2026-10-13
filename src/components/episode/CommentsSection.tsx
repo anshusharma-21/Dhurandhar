@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Comment } from "@/lib/types/comment";
 import { formatDate } from "@/lib/utils/formatters";
-import { MessageSquare, Send, ShieldAlert, CheckCircle2, User, Lock, AlertCircle } from "lucide-react";
+import { MessageSquare, Send, ShieldAlert, CheckCircle2, User, Lock, AlertCircle, ShieldCheck } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 interface CommentsSectionProps {
   episodeId: string;
@@ -16,16 +17,13 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error" | "pending"; text: string } | null>(null);
 
-  // Simulated logged-in session state (can be toggled or integrated with Supabase auth)
+  // Real authenticated Supabase session state
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     display_name: string;
     is_verified: boolean;
-  } | null>({
-    id: "user-1",
-    display_name: "Rahul Verma",
-    is_verified: true,
-  });
+  } | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const fetchComments = async () => {
     try {
@@ -44,6 +42,83 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
   useEffect(() => {
     fetchComments();
   }, [episodeId]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const client = supabase;
+
+    if (!isSupabaseConfigured || !client) {
+      setAuthLoading(false);
+      return;
+    }
+
+    const syncUserSession = async () => {
+      try {
+        const { data: { user } } = await client.auth.getUser();
+        if (!isMounted) return;
+
+        if (user) {
+          let displayName =
+            user.user_metadata?.display_name ||
+            user.user_metadata?.full_name ||
+            user.email?.split("@")[0] ||
+            "Community Member";
+          let isVerified = Boolean(user.email_confirmed_at);
+
+          try {
+            const { data: profile } = await client
+              .from("profiles")
+              .select("display_name, email_verified_at")
+              .eq("id", user.id)
+              .maybeSingle();
+
+            if (profile && isMounted) {
+              if (profile.display_name) displayName = profile.display_name;
+              if (profile.email_verified_at) isVerified = true;
+            }
+          } catch {
+            // Fallback to user metadata
+          }
+
+          if (isMounted) {
+            setCurrentUser({
+              id: user.id,
+              display_name: displayName,
+              is_verified: isVerified,
+            });
+          }
+        } else {
+          if (isMounted) {
+            setCurrentUser(null);
+          }
+        }
+      } catch (err) {
+        console.error("Auth session check error:", err);
+        if (isMounted) setCurrentUser(null);
+      } finally {
+        if (isMounted) setAuthLoading(false);
+      }
+    };
+
+    syncUserSession();
+
+    const {
+      data: { subscription },
+    } = client.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+      if (session?.user) {
+        syncUserSession();
+      } else {
+        setCurrentUser(null);
+        setAuthLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +151,7 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           episode_id: episodeId,
-          author_profile_id: currentUser.id,
           author_name: currentUser.display_name,
-          is_email_verified: currentUser.is_verified,
           body: commentText,
         }),
       });
@@ -115,85 +188,130 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
   };
 
   return (
-    <section className="bg-navy-900 border border-navy-800 rounded-2xl p-6 sm:p-8 shadow-card" aria-labelledby="discussion-heading">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-navy-800">
+    <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 sm:p-8 shadow-sm dark:shadow-card transition-colors" aria-labelledby="discussion-heading">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-white/10">
         <div className="flex items-center space-x-2.5">
-          <MessageSquare className="w-5 h-5 text-brand-sky" />
-          <h2 id="discussion-heading" className="text-lg font-bold text-white">
+          <MessageSquare className="w-5 h-5 text-amber-500" />
+          <h2 id="discussion-heading" className="text-lg font-black text-slate-900 dark:text-white">
             Community Discussion ({comments.length})
           </h2>
         </div>
 
-        {/* Demo Auth Toggle for Review & Testing */}
+        {/* Real Supabase Auth State Badge */}
         <div className="flex items-center space-x-2 text-xs">
-          <span className="text-slate-400">Simulate:</span>
-          <button
-            type="button"
-            onClick={() => setCurrentUser(currentUser ? null : { id: "user-1", display_name: "Rahul Verma", is_verified: true })}
-            className={`px-2 py-1 rounded text-[11px] border ${
-              currentUser ? "bg-navy-800 text-teal-400 border-teal-800/40" : "bg-red-950/40 text-red-400 border-red-800/40"
-            }`}
-          >
-            {currentUser ? "Logged In" : "Signed Out"}
-          </button>
+          {authLoading ? (
+            <span className="text-slate-400 text-[11px] animate-pulse">Checking auth...</span>
+          ) : currentUser ? (
+            <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span>{currentUser.display_name}</span>
+            </span>
+          ) : (
+            <a
+              href="/sign-in"
+              className="text-amber-700 dark:text-amber-400 hover:underline text-[11px] font-semibold"
+            >
+              Sign in to discuss →
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Submission Form or Auth Gate (AC-09) */}
-      {currentUser ? (
+      {/* Submission Form or Auth Gate (AC-09, AC-10) */}
+      {authLoading ? (
+        <div className="mb-8 p-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-center text-xs text-slate-500 dark:text-slate-400 animate-pulse">
+          Checking account privileges...
+        </div>
+      ) : currentUser ? (
         <form onSubmit={handleSubmit} className="mb-8">
-          <div className="flex items-center space-x-2 mb-2 text-xs text-slate-300">
-            <User className="w-3.5 h-3.5 text-brand-sky" />
-            <span>Commenting as <strong className="text-white">{currentUser.display_name}</strong></span>
+          <div className="flex items-center justify-between mb-2 text-xs text-slate-600 dark:text-slate-300">
+            <div className="flex items-center space-x-2">
+              <User className="w-3.5 h-3.5 text-amber-500" />
+              <span>Commenting as <strong className="text-slate-900 dark:text-white">{currentUser.display_name}</strong></span>
+            </div>
+            {currentUser.is_verified ? (
+              <span className="inline-flex items-center space-x-1 text-[11px] text-teal-600 dark:text-teal-400 font-bold">
+                <CheckCircle2 className="w-3 h-3 text-teal-500" />
+                <span>Verified</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center space-x-1 text-[11px] text-amber-700 dark:text-amber-400 font-bold">
+                <AlertCircle className="w-3 h-3 text-amber-500" />
+                <span>Unverified</span>
+              </span>
+            )}
           </div>
+
+          {!currentUser.is_verified && (
+            <div className="mb-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-semibold text-amber-800 dark:text-amber-300">Email Verification Required</p>
+                <p className="text-amber-800/90 dark:text-amber-200/90 text-[11px] leading-relaxed">
+                  Your email has not been verified yet. Check your inbox for the confirmation link to enable commenting.
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="relative">
             <textarea
               rows={3}
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Share your perspective, question, or lesson from this episode..."
-              className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-sky focus:ring-1 focus:ring-brand-sky resize-none"
+              placeholder={
+                currentUser.is_verified
+                  ? "Share your perspective, question, or lesson from this episode..."
+                  : "Please verify your email address to enable commenting..."
+              }
+              disabled={!currentUser.is_verified}
+              className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl p-3.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 resize-none transition-colors"
               required
             />
           </div>
 
           <div className="mt-3 flex items-center justify-between">
-            <p className="text-[11px] text-slate-400">
-              Constructive contributions only. All comments respect our <a href="/community-guidelines" className="text-brand-sky hover:underline">Guidelines</a>.
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Constructive contributions only. All comments respect our <a href="/community-guidelines" className="text-amber-700 dark:text-amber-400 hover:underline">Guidelines</a>.
             </p>
             <button
               type="submit"
-              disabled={submitting || !commentText.trim()}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-brand-sky hover:bg-sky-500 disabled:opacity-50 text-slate-950 font-semibold rounded-lg text-xs shadow-subtle transition-all"
+              disabled={submitting || !commentText.trim() || !currentUser.is_verified}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold rounded-xl text-xs shadow-sm transition-all"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{submitting ? "Posting..." : "Post Comment"}</span>
+              <span>
+                {!currentUser.is_verified
+                  ? "Verification Required"
+                  : submitting
+                  ? "Posting..."
+                  : "Post Comment"}
+              </span>
             </button>
           </div>
         </form>
       ) : (
         /* AC-09 Signed-Out Prompt */
-        <div className="mb-8 bg-navy-950/80 border border-navy-800 rounded-xl p-5 text-center">
-          <div className="w-10 h-10 mx-auto rounded-full bg-navy-800 flex items-center justify-center mb-3">
-            <Lock className="w-5 h-5 text-brand-gold" />
+        <div className="mb-8 bg-slate-50 dark:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 text-center transition-colors">
+          <div className="w-10 h-10 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3">
+            <Lock className="w-5 h-5 text-amber-500" />
           </div>
-          <h3 className="text-sm font-semibold text-white mb-1">
+          <h3 className="text-sm font-black text-slate-900 dark:text-white mb-1">
             Sign In to Join the Discussion
           </h3>
-          <p className="text-xs text-slate-400 mb-4 max-w-md mx-auto">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 max-w-md mx-auto">
             To prevent spam and foster high-quality founder conversations, comments require an authenticated account.
           </p>
           <div className="flex items-center justify-center space-x-3 text-xs">
             <a
               href="/sign-in"
-              className="px-4 py-2 bg-brand-sky text-slate-950 font-semibold rounded-lg hover:bg-sky-400 transition-colors"
+              className="px-4 py-2 bg-amber-500 text-slate-950 font-bold rounded-xl hover:bg-amber-400 transition-colors shadow-sm"
             >
               Sign In
             </a>
             <a
               href="/register"
-              className="px-4 py-2 bg-navy-800 text-slate-200 hover:text-white rounded-lg border border-navy-700 transition-colors"
+              className="px-4 py-2 bg-white dark:bg-white/10 text-slate-800 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white rounded-xl border border-slate-300 dark:border-white/10 transition-colors"
             >
               Create Account
             </a>
@@ -206,16 +324,16 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
         <div
           className={`mb-6 p-4 rounded-xl text-xs flex items-start space-x-3 ${
             statusMessage.type === "success"
-              ? "bg-teal-950/60 border border-teal-800 text-teal-200"
+              ? "bg-teal-500/10 border border-teal-500/30 text-teal-800 dark:text-teal-200"
               : statusMessage.type === "pending"
-              ? "bg-amber-950/60 border border-amber-800 text-amber-200"
-              : "bg-red-950/60 border border-red-800 text-red-200"
+              ? "bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200"
+              : "bg-red-500/10 border border-red-500/30 text-red-800 dark:text-red-200"
           }`}
         >
           {statusMessage.type === "success" ? (
-            <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
           )}
           <p className="leading-relaxed">{statusMessage.text}</p>
         </div>
@@ -235,15 +353,15 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
           comments.map((comment) => (
             <div
               key={comment.id}
-              className="bg-navy-950/60 border border-navy-800/80 rounded-xl p-4 transition-colors"
+              className="bg-slate-50/80 dark:bg-[#131824] border border-slate-200/90 dark:border-white/10 rounded-xl p-4 transition-colors"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 rounded-full bg-navy-800 border border-navy-700 flex items-center justify-center text-xs font-bold text-brand-sky">
+                  <div className="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-xs font-bold text-amber-700 dark:text-amber-400">
                     {comment.author?.display_name.charAt(0) || "U"}
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-white block">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
                       {comment.author?.display_name || "Community Member"}
                     </span>
                     <span className="text-[10px] text-slate-500">
@@ -254,7 +372,7 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
               </div>
 
               {/* Sanitized body - AC-12 */}
-              <p className="text-xs text-slate-300 leading-relaxed pl-9">
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed pl-9">
                 {comment.body}
               </p>
             </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbRepository } from "@/lib/db/repository";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
+import { verifyAdminAuth } from "@/lib/auth/admin-guard";
 
 export async function GET(
   req: NextRequest,
@@ -22,7 +23,21 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const body = await req.json();
+    // Server-side authorization check (Editor / Admin only)
+    const auth = await verifyAdminAuth();
+
+    if (!auth.isAuthenticated || !auth.user) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    }
+
+    if (!auth.isEditor) {
+      return NextResponse.json(
+        { error: "Forbidden. Editor or administrator privileges required to update episodes." },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
 
     if (body.instagram_url) {
       const igValidation = validateAndCleanInstagramUrl(body.instagram_url);

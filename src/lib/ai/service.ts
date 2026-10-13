@@ -32,13 +32,11 @@ export async function generateAISummary(
     );
   }
 
-  const aiProvider = process.env.AI_PROVIDER || "mock";
-  const apiKey = process.env.AI_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY || (process.env.AI_PROVIDER === "gemini" ? process.env.AI_API_KEY : process.env.AI_API_KEY);
+  const openAiKey = process.env.OPENAI_API_KEY;
+  const aiProvider = process.env.AI_PROVIDER || (geminiKey ? "gemini" : openAiKey ? "openai" : "mock");
 
-  // If real Gemini key is configured
-  if (aiProvider === "gemini" && apiKey && !apiKey.includes("your-server-side")) {
-    try {
-      const prompt = `You are the executive editorial assistant for Dr. Ajay Kumar and AI Automation Labs LLP's "Project Dhurandhar: Road to ₹30CR Revenue".
+  const prompt = `You are the executive editorial assistant for Dr. Ajay Kumar and AI Automation Labs LLP's "Project Dhurandhar: Road to ₹30CR Revenue".
 Episode: Day ${dayNumber} - ${episodeTitle}
 Source Material (${sourceType}):
 """
@@ -55,8 +53,11 @@ STRICT EDITORIAL RULES:
 
 Return strictly valid JSON with keys: "summary", "takeaways", "suggestedTags", "seoMetaDescription".`;
 
+  // --- GOOGLE GEMINI REAL PROVIDER ---
+  if ((aiProvider === "gemini" || geminiKey) && geminiKey && !geminiKey.includes("your-server-side") && !geminiKey.includes("your-gemini")) {
+    try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -69,21 +70,71 @@ Return strictly valid JSON with keys: "summary", "takeaways", "suggestedTags", "
 
       if (response.ok) {
         const data = await response.json();
-        const candidate = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (candidate) {
-          const parsed = JSON.parse(candidate);
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          const cleanJson = rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+          const parsed = JSON.parse(cleanJson);
+          const totalTokens = data.usageMetadata?.totalTokenCount || Math.ceil(primarySourceText.length / 4);
+
           return {
             summary: parsed.summary,
             takeaways: Array.isArray(parsed.takeaways) ? parsed.takeaways : [],
             suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : ["AI & Automation"],
             seoMetaDescription: parsed.seoMetaDescription || `Day ${dayNumber}: ${episodeTitle} - Project Dhurandhar`,
             sourceType,
+            tokensUsed: totalTokens,
             model: "gemini-1.5-flash",
           };
         }
+      } else {
+        const errBody = await response.text();
+        console.warn("Gemini API error response:", response.status, errBody);
       }
-    } catch (err) {
-      console.warn("External Gemini API call encountered an error, falling back to reliable synthesis engine:", err);
+    } catch (err: any) {
+      console.warn("Gemini API call failed, falling back to synthesis engine:", err.message);
+    }
+  }
+
+  // --- OPENAI REAL PROVIDER ---
+  if ((aiProvider === "openai" || openAiKey) && openAiKey && !openAiKey.includes("your-openai")) {
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openAiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: "You are an executive editorial assistant. Output strictly valid JSON with keys: summary, takeaways, suggestedTags, seoMetaDescription.",
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (content) {
+          const parsed = JSON.parse(content);
+          return {
+            summary: parsed.summary,
+            takeaways: Array.isArray(parsed.takeaways) ? parsed.takeaways : [],
+            suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : ["AI & Automation"],
+            seoMetaDescription: parsed.seoMetaDescription || `Day ${dayNumber}: ${episodeTitle} - Project Dhurandhar`,
+            sourceType,
+            tokensUsed: data.usage?.total_tokens || Math.ceil(primarySourceText.length / 4),
+            model: "gpt-4o-mini",
+          };
+        }
+      }
+    } catch (err: any) {
+      console.warn("OpenAI API call failed, falling back to synthesis engine:", err.message);
     }
   }
 

@@ -36,11 +36,12 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
   const activeMilestonesCount = milestones.filter((m) => m.visibility).length;
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24" aria-labelledby="revenue-mission-heading">
-      <div className="bg-white/90 dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden transition-colors duration-150">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16" aria-labelledby="revenue-mission-heading">
+      <div className="bg-white/95 dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 border-t-2 border-t-amber-500/50 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-lg dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden transition-all duration-300">
         
         {/* Subtle Decorative Ambient Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 dark:bg-amber-400/5 blur-[120px] pointer-events-none -z-0" />
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent pointer-events-none" />
 
         {/* Section Top Header & Data Mode Verification Badge */}
         <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between pb-8 mb-10 border-b border-slate-200/80 dark:border-white/10 gap-6">
@@ -91,57 +92,73 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
           </div>
         </div>
 
-        {/* Big Editorial Numbers Grid */}
+        {/* Big Editorial Numbers Grid - Interactive Luxury Cards */}
         <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
           {/* 1. Target Stated */}
-          <div className="bg-slate-50/80 dark:bg-[#131824] border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 sm:p-6 transition-colors">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] block mb-2">
+          <div className="group relative overflow-hidden bg-slate-50/90 dark:bg-[#111622] hover:bg-slate-100/90 dark:hover:bg-[#151c2d] border border-slate-200/80 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-5 sm:p-6 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_30px_-6px_rgba(245,158,11,0.22)] cursor-default">
+            {/* Golden top accent line on hover */}
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Subtle ambient corner glow */}
+            <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 uppercase tracking-[0.16em] block mb-2 transition-colors">
               Mission Target
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-amber-950 dark:group-hover:text-white transition-colors">
               {formatINR(targetAmount, true)}
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 block font-mono">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block font-mono transition-colors">
               ₹30,00,00,000 INR
             </span>
           </div>
 
           {/* 2. Achieved Revenue */}
-          <div className="bg-slate-50/80 dark:bg-[#131824] border border-amber-500/30 dark:border-amber-400/30 rounded-2xl p-5 sm:p-6 transition-colors relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-xl pointer-events-none" />
+          <div className="group relative overflow-hidden bg-slate-50/90 dark:bg-[#111622] hover:bg-slate-100/90 dark:hover:bg-[#161d2d] border border-amber-500/40 dark:border-amber-400/40 hover:border-amber-500/80 dark:hover:border-amber-400/80 rounded-2xl p-5 sm:p-6 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_32px_-6px_rgba(245,158,11,0.3)] cursor-default">
+            {/* Always-on subtle golden top line, brighter on hover */}
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-amber-500/40 via-amber-400 to-amber-500/40 opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/15 group-hover:bg-amber-500/25 rounded-full blur-xl pointer-events-none transition-all duration-300" />
+            
             <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-[0.16em] block mb-2">
               Revenue Achieved
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-700 dark:text-amber-300 tracking-tight">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-700 dark:text-amber-300 group-hover:text-amber-600 dark:group-hover:text-amber-200 tracking-tight transition-colors">
               {formatINR(totalActual, true)}
             </div>
-            <span className="text-[11px] text-amber-600/90 dark:text-amber-400/70 mt-2 block font-mono">
+            <span className="text-[11px] text-amber-600/90 dark:text-amber-400/80 mt-2 block font-mono">
               {formatINR(totalActual, false)}
             </span>
           </div>
 
           {/* 3. Gap Remaining */}
-          <div className="bg-slate-50/80 dark:bg-[#131824] border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 sm:p-6 transition-colors">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] block mb-2">
+          <div className="group relative overflow-hidden bg-slate-50/90 dark:bg-[#111622] hover:bg-slate-100/90 dark:hover:bg-[#151c2d] border border-slate-200/80 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-5 sm:p-6 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_30px_-6px_rgba(245,158,11,0.22)] cursor-default">
+            {/* Golden top accent line on hover */}
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 uppercase tracking-[0.16em] block mb-2 transition-colors">
               Remaining Gap
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-amber-950 dark:group-hover:text-white transition-colors">
               {isTargetExceeded ? "Completed" : formatINR(remainingAmount, true)}
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 block font-mono">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block font-mono transition-colors">
               {isTargetExceeded ? "Target Goal Reached" : `${formatINR(remainingAmount, false)} to go`}
             </span>
           </div>
 
           {/* 4. Target Percentage */}
-          <div className="bg-slate-50/80 dark:bg-[#131824] border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 sm:p-6 transition-colors">
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.16em] block mb-2">
+          <div className="group relative overflow-hidden bg-slate-50/90 dark:bg-[#111622] hover:bg-slate-100/90 dark:hover:bg-[#151c2d] border border-slate-200/80 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-5 sm:p-6 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_30px_-6px_rgba(245,158,11,0.22)] cursor-default">
+            {/* Golden top accent line on hover */}
+            <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 uppercase tracking-[0.16em] block mb-2 transition-colors">
               Target Completed
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
               {percentage}%
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 block">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block transition-colors">
               {(100 - percentage).toFixed(1)}% of ₹30Cr remaining
             </span>
           </div>

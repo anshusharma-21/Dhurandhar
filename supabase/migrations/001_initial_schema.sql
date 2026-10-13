@@ -245,9 +245,32 @@ ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.slug_redirects ENABLE ROW LEVEL SECURITY;
 
--- Helper function to check if user has admin/editor role
+-- Helper function: Check if current user has active admin role
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public, auth
+AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid()
+        AND role = 'admin'
+        AND status = 'active'
+    );
+END;
+$$;
+
+-- Helper function: Check if current user has active admin or editor role
 CREATE OR REPLACE FUNCTION public.is_admin_or_editor()
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public, auth
+AS $$
 BEGIN
     RETURN EXISTS (
         SELECT 1 FROM public.profiles
@@ -256,52 +279,356 @@ BEGIN
         AND status = 'active'
     );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
--- Profiles: Public can read active profiles (excluding private email)
+-- ==============================================================================
+-- DATABASE-SIDE INTEGRITY TRIGGERS & WORKFLOW ENFORCEMENT
+-- ==============================================================================
+
+-- 1. Profile Security Trigger: Prevent privilege escalation by non-admins
+CREATE OR REPLACE FUNCTION public.handle_profile_update()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+    -- If caller is authenticated and not an active admin, guard sensitive columns
+    IF auth.uid() IS NOT NULL AND NOT public.is_admin() THEN
+        IF NEW.role IS DISTINCT FROM OLD.role THEN
+            RAISE EXCEPTION 'Only administrators can modify user roles';
+        END IF;
+        IF NEW.status IS DISTINCT FROM OLD.status THEN
+            RAISE EXCEPTION 'Only administrators can modify account status';
+        END IF;
+        IF NEW.email_verified_at IS DISTINCT FROM OLD.email_verified_at THEN
+            RAISE EXCEPTION 'Cannot manually alter email verification timestamp';
+        END IF;
+    END IF;
+
+    NEW.updated_at := NOW();
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_profile_update ON public.profiles;
+CREATE TRIGGER on_profile_update
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_profile_update();
+
+-- 2. Comment Moderation Trigger: Force re-moderation on author edit and stamp moderator action
+CREATE OR REPLACE FUNCTION public.handle_comment_update()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+    actor_is_moderator BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid()
+        AND role IN ('admin', 'moderator', 'editor')
+        AND status = 'active'
+    ) INTO actor_is_moderator;
+
+    IF auth.uid() IS NOT NULL AND NOT actor_is_moderator THEN
+        -- Prevent reassigning author ownership or episode target
+        IF NEW.author_profile_id IS DISTINCT FROM OLD.author_profile_id 
+           OR NEW.episode_id IS DISTINCT FROM OLD.episode_id THEN
+            RAISE EXCEPTION 'Cannot reassign comment ownership or episode';
+        END IF;
+
+        -- If body was modified by author, reset status to pending for re-moderation
+        IF NEW.body IS DISTINCT FROM OLD.body THEN
+            NEW.status := 'pending';
+            NEW.moderated_by := NULL;
+            NEW.moderated_at := NULL;
+        ELSE
+            -- Author cannot alter status directly if body was not changed
+            NEW.status := OLD.status;
+        END IF;
+    ELSIF actor_is_moderator THEN
+        -- If moderator/admin is updating status, stamp moderator info
+        IF NEW.status IS DISTINCT FROM OLD.status THEN
+            NEW.moderated_by := auth.uid();
+            NEW.moderated_at := NOW();
+        END IF;
+    END IF;
+
+    NEW.updated_at := NOW();
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_comment_update ON public.comments;
+CREATE TRIGGER on_comment_update
+    BEFORE UPDATE ON public.comments
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_comment_update();
+
+-- 3. Automatic Profile Creation Trigger on auth.users signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+    user_display_name TEXT;
+    user_avatar_url TEXT;
+BEGIN
+    user_display_name := COALESCE(
+        NULLIF(TRIM(NEW.raw_user_meta_data->>'display_name'), ''),
+        NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+        NULLIF(TRIM(NEW.raw_user_meta_data->>'name'), ''),
+        NULLIF(SPLIT_PART(NEW.email, '@', 1), ''),
+        'Member'
+    );
+
+    user_avatar_url := NULLIF(TRIM(NEW.raw_user_meta_data->>'avatar_url'), '');
+
+    INSERT INTO public.profiles (
+        id,
+        display_name,
+        avatar_url,
+        role,
+        email_verified_at,
+        status,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        NEW.id,
+        user_display_name,
+        user_avatar_url,
+        'member', -- Defaults strictly to member; privileged roles can only be granted by admins
+        CASE WHEN NEW.email_confirmed_at IS NOT NULL THEN NEW.email_confirmed_at ELSE NULL END,
+        'active',
+        NOW(),
+        NOW()
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET
+        display_name = COALESCE(EXCLUDED.display_name, profiles.display_name),
+        avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url),
+        email_verified_at = COALESCE(EXCLUDED.email_verified_at, profiles.email_verified_at),
+        updated_at = NOW();
+
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE WARNING 'handle_new_user failed for user %: %', NEW.id, SQLERRM;
+        RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_user();
+
+-- 4. Sync email verification timestamp from auth.users to public.profiles
+CREATE OR REPLACE FUNCTION public.handle_user_email_confirmed()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+    IF NEW.email_confirmed_at IS NOT NULL AND (OLD.email_confirmed_at IS NULL OR OLD.email_confirmed_at IS DISTINCT FROM NEW.email_confirmed_at) THEN
+        UPDATE public.profiles
+        SET email_verified_at = NEW.email_confirmed_at,
+            updated_at = NOW()
+        WHERE id = NEW.id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_email_confirmed ON auth.users;
+CREATE TRIGGER on_auth_user_email_confirmed
+    AFTER UPDATE OF email_confirmed_at ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_user_email_confirmed();
+
+-- Optional backfill for existing auth users if any exist prior to migration
+INSERT INTO public.profiles (id, display_name, role, status, email_verified_at)
+SELECT 
+    u.id,
+    COALESCE(
+        NULLIF(TRIM(u.raw_user_meta_data->>'display_name'), ''),
+        NULLIF(TRIM(u.raw_user_meta_data->>'full_name'), ''),
+        NULLIF(SPLIT_PART(u.email, '@', 1), ''),
+        'Member'
+    ),
+    'member',
+    'active',
+    u.email_confirmed_at
+FROM auth.users u
+ON CONFLICT (id) DO NOTHING;
+
+-- ==============================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES — IDEMPOTENT & HARDENED
+-- ==============================================================================
+
+-- ------------------------------------------------------------------------------
+-- 1. PROFILES POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
 CREATE POLICY "Public profiles are viewable by everyone" 
     ON public.profiles FOR SELECT 
     USING (status = 'active');
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile" 
     ON public.profiles FOR UPDATE 
-    USING (id = auth.uid());
+    USING (id = auth.uid() OR public.is_admin())
+    WITH CHECK (id = auth.uid() OR public.is_admin());
 
--- Episodes: Public can read published episodes only
+DROP POLICY IF EXISTS "Admins can manage profiles" ON public.profiles;
+CREATE POLICY "Admins can manage profiles" 
+    ON public.profiles FOR ALL 
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
+
+-- ------------------------------------------------------------------------------
+-- 2. EPISODES POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Public can view published episodes" ON public.episodes;
 CREATE POLICY "Public can view published episodes" 
     ON public.episodes FOR SELECT 
     USING (status = 'published' AND published_at <= NOW());
 
+DROP POLICY IF EXISTS "Admins and editors have full access to episodes" ON public.episodes;
 CREATE POLICY "Admins and editors have full access to episodes" 
     ON public.episodes FOR ALL 
-    USING (public.is_admin_or_editor());
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
 
--- Tags: Viewable by all, managed by editors/admins
+-- ------------------------------------------------------------------------------
+-- 3. TAGS & EPISODE_TAGS POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Tags are viewable by everyone" ON public.tags;
 CREATE POLICY "Tags are viewable by everyone" 
     ON public.tags FOR SELECT 
     USING (true);
 
+DROP POLICY IF EXISTS "Admins and editors can manage tags" ON public.tags;
 CREATE POLICY "Admins and editors can manage tags" 
     ON public.tags FOR ALL 
-    USING (public.is_admin_or_editor());
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
 
+DROP POLICY IF EXISTS "Episode tags viewable by everyone" ON public.episode_tags;
 CREATE POLICY "Episode tags viewable by everyone" 
     ON public.episode_tags FOR SELECT 
     USING (true);
 
+DROP POLICY IF EXISTS "Episode tags managed by editors/admins" ON public.episode_tags;
 CREATE POLICY "Episode tags managed by editors/admins" 
     ON public.episode_tags FOR ALL 
-    USING (public.is_admin_or_editor());
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
 
--- Comments: Public can view approved comments
+-- ------------------------------------------------------------------------------
+-- 4. COMPANIES & PEOPLE POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Public can view public companies" ON public.companies;
+CREATE POLICY "Public can view public companies" 
+    ON public.companies FOR SELECT 
+    USING (visibility = 'public' OR public.is_admin_or_editor());
+
+DROP POLICY IF EXISTS "Admins and editors can manage companies" ON public.companies;
+CREATE POLICY "Admins and editors can manage companies" 
+    ON public.companies FOR ALL 
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
+
+DROP POLICY IF EXISTS "Public can view public people" ON public.people;
+CREATE POLICY "Public can view public people" 
+    ON public.people FOR SELECT 
+    USING (visibility = 'public' OR public.is_admin_or_editor());
+
+DROP POLICY IF EXISTS "Admins and editors can manage people" ON public.people;
+CREATE POLICY "Admins and editors can manage people" 
+    ON public.people FOR ALL 
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
+
+DROP POLICY IF EXISTS "Public can view published episode people" ON public.episode_people;
+CREATE POLICY "Public can view published episode people" 
+    ON public.episode_people FOR SELECT 
+    USING (
+        public.is_admin_or_editor()
+        OR (
+            EXISTS (
+                SELECT 1 FROM public.episodes e 
+                WHERE e.id = episode_people.episode_id 
+                AND e.status = 'published' 
+                AND e.published_at <= NOW()
+            )
+            AND EXISTS (
+                SELECT 1 FROM public.people p 
+                WHERE p.id = episode_people.person_id 
+                AND p.visibility = 'public'
+            )
+        )
+    );
+
+DROP POLICY IF EXISTS "Admins and editors can manage episode people" ON public.episode_people;
+CREATE POLICY "Admins and editors can manage episode people" 
+    ON public.episode_people FOR ALL 
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
+
+DROP POLICY IF EXISTS "Public can view published episode companies" ON public.episode_companies;
+CREATE POLICY "Public can view published episode companies" 
+    ON public.episode_companies FOR SELECT 
+    USING (
+        public.is_admin_or_editor()
+        OR (
+            EXISTS (
+                SELECT 1 FROM public.episodes e 
+                WHERE e.id = episode_companies.episode_id 
+                AND e.status = 'published' 
+                AND e.published_at <= NOW()
+            )
+            AND EXISTS (
+                SELECT 1 FROM public.companies c 
+                WHERE c.id = episode_companies.company_id 
+                AND c.visibility = 'public'
+            )
+        )
+    );
+
+DROP POLICY IF EXISTS "Admins and editors can manage episode companies" ON public.episode_companies;
+CREATE POLICY "Admins and editors can manage episode companies" 
+    ON public.episode_companies FOR ALL 
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
+
+-- ------------------------------------------------------------------------------
+-- 5. COMMUNITY COMMENTS POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Public can view approved comments" ON public.comments;
 CREATE POLICY "Public can view approved comments" 
     ON public.comments FOR SELECT 
-    USING (status = 'approved' OR author_profile_id = auth.uid());
+    USING (
+        status = 'approved' 
+        OR author_profile_id = auth.uid() 
+        OR public.is_admin_or_editor()
+    );
 
+DROP POLICY IF EXISTS "Verified members can insert comments" ON public.comments;
 CREATE POLICY "Verified members can insert comments" 
     ON public.comments FOR INSERT 
     WITH CHECK (
         auth.uid() = author_profile_id
+        AND status = 'pending'
         AND EXISTS (
             SELECT 1 FROM public.profiles 
             WHERE id = auth.uid() 
@@ -310,13 +637,18 @@ CREATE POLICY "Verified members can insert comments"
         )
     );
 
+DROP POLICY IF EXISTS "Authors can edit own comment within 10 minutes" ON public.comments;
 CREATE POLICY "Authors can edit own comment within 10 minutes" 
     ON public.comments FOR UPDATE 
     USING (
         auth.uid() = author_profile_id 
         AND created_at >= NOW() - INTERVAL '10 minutes'
+    )
+    WITH CHECK (
+        auth.uid() = author_profile_id
     );
 
+DROP POLICY IF EXISTS "Admins and moderators can moderate comments" ON public.comments;
 CREATE POLICY "Admins and moderators can moderate comments" 
     ON public.comments FOR ALL 
     USING (
@@ -324,14 +656,33 @@ CREATE POLICY "Admins and moderators can moderate comments"
             SELECT 1 FROM public.profiles
             WHERE id = auth.uid()
             AND role IN ('admin', 'moderator', 'editor')
+            AND status = 'active'
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.profiles
+            WHERE id = auth.uid()
+            AND role IN ('admin', 'moderator', 'editor')
+            AND status = 'active'
         )
     );
 
--- Revenue Settings & Months:
+-- ------------------------------------------------------------------------------
+-- 6. REVENUE DASHBOARD POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Revenue settings public access conditioned on visibility" ON public.revenue_settings;
 CREATE POLICY "Revenue settings public access conditioned on visibility"
     ON public.revenue_settings FOR SELECT
     USING (visibility != 'private' OR public.is_admin_or_editor());
 
+DROP POLICY IF EXISTS "Admins can manage revenue settings" ON public.revenue_settings;
+CREATE POLICY "Admins can manage revenue settings"
+    ON public.revenue_settings FOR ALL
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Revenue months public access when detailed" ON public.revenue_months;
 CREATE POLICY "Revenue months public access when detailed"
     ON public.revenue_months FOR SELECT
     USING (
@@ -342,33 +693,79 @@ CREATE POLICY "Revenue months public access when detailed"
         OR public.is_admin_or_editor()
     );
 
-CREATE POLICY "Admins can manage revenue settings"
-    ON public.revenue_settings FOR ALL
-    USING (
-        EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-    );
-
+DROP POLICY IF EXISTS "Admins can manage revenue months" ON public.revenue_months;
 CREATE POLICY "Admins can manage revenue months"
     ON public.revenue_months FOR ALL
-    USING (
-        EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-    );
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
+DROP POLICY IF EXISTS "Milestones viewable when public" ON public.revenue_milestones;
 CREATE POLICY "Milestones viewable when public"
     ON public.revenue_milestones FOR SELECT
     USING (visibility = true OR public.is_admin_or_editor());
 
+DROP POLICY IF EXISTS "Milestones managed by admins" ON public.revenue_milestones;
 CREATE POLICY "Milestones managed by admins"
     ON public.revenue_milestones FOR ALL
-    USING (public.is_admin_or_editor());
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
 
--- Audit log: Strictly accessible only by Admin role
+-- ------------------------------------------------------------------------------
+-- 7. AUDIT LOG & AI JOBS POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Audit logs strictly admin only" ON public.audit_log;
 CREATE POLICY "Audit logs strictly admin only" 
     ON public.audit_log FOR SELECT 
-    USING (
-        EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
-    );
+    USING (public.is_admin());
 
+DROP POLICY IF EXISTS "Admins can insert audit logs" ON public.audit_log;
+CREATE POLICY "Admins can insert audit logs" 
+    ON public.audit_log FOR INSERT 
+    WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Admins and editors can view and manage ai jobs" ON public.ai_jobs;
+CREATE POLICY "Admins and editors can view and manage ai jobs" 
+    ON public.ai_jobs FOR ALL 
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
+
+-- ------------------------------------------------------------------------------
+-- 8. SLUG REDIRECTS POLICIES
+-- ------------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Slug redirects readable by all" ON public.slug_redirects;
 CREATE POLICY "Slug redirects readable by all"
     ON public.slug_redirects FOR SELECT
     USING (true);
+
+DROP POLICY IF EXISTS "Admins and editors can manage slug redirects" ON public.slug_redirects;
+CREATE POLICY "Admins and editors can manage slug redirects"
+    ON public.slug_redirects FOR ALL 
+    USING (public.is_admin_or_editor())
+    WITH CHECK (public.is_admin_or_editor());
+
+-- ==============================================================================
+-- POSTGREST LEAST-PRIVILEGE ROLE PERMISSIONS (SEC 13.1, SECURITY HARDENING)
+-- ==============================================================================
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+
+-- 1. Anonymous role: Read-only on public records strictly governed by RLS policies
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
+
+-- 2. Authenticated role: CRUD operations strictly governed by RLS policies
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+
+-- 3. Service role: Full administrative access for server-side background operations
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+
+-- 4. Sequences & Routines
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT EXECUTE ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+
+-- 5. Future tables default privileges
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON ROUTINES TO anon, authenticated, service_role;
+
+

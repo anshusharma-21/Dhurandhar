@@ -3,7 +3,30 @@ import { RevenueSettings, RevenueMonth, RevenueMilestone } from "../types/revenu
 import { Comment, CommentStatus } from "../types/comment";
 import { UserProfile, UserRole } from "../types/profile";
 import { AuditLogEntry } from "../types/audit";
+import { Company, Person, FounderProfile } from "../types/people";
 import { sanitizePlainText } from "../security/sanitize";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+// Safe, non-cookie database client for server-level queries & background operations
+function getDbClient(): SupabaseClient | null {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key || url.includes("your-project") || key.includes("your-supabase")) {
+    return null;
+  }
+
+  try {
+    return createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  } catch {
+    return null;
+  }
+}
 
 // ==============================================================================
 // INITIAL IN-MEMORY STORE (Fallback & Baseline Seed Data)
@@ -286,6 +309,68 @@ let auditLogsStore: AuditLogEntry[] = [
   },
 ];
 
+let companiesStore: Company[] = [
+  {
+    id: "comp-1",
+    name: "AI Automation Labs LLP",
+    slug: "ai-automation-labs",
+    description: "Enterprise AI and agentic workflow automation lab.",
+    website_url: "https://automationlabs.online",
+    visibility: "public",
+    created_at: "2026-04-01T00:00:00Z",
+  },
+];
+
+let peopleStore: Person[] = [
+  {
+    id: "person-1",
+    name: "Dr. Ajay Kumar",
+    slug: "dr-ajay-kumar",
+    role: "Founder & Managing Partner",
+    company_name: "AI Automation Labs LLP",
+    company_id: "comp-1",
+    biography: "Founder of AI Automation Labs documenting the journey to ₹30 Crore revenue.",
+    visibility: "public",
+    created_at: "2026-04-01T00:00:00Z",
+  },
+];
+
+let founderProfileStore: FounderProfile = {
+  name: "Dr. Ajay Kumar",
+  title: "Founder & Managing Partner • AI Automation Labs LLP",
+  company_name: "AI Automation Labs LLP",
+  company_url: "https://automationlabs.online",
+  bio: "Dr. Ajay Kumar is leading AI Automation Labs LLP on a mission to build a ₹30 Crore enterprise automation firm. Chronicling the journey daily on Project Dhurandhar, he shares operational decisions, client delivery frameworks, and business lessons with total candor.",
+  photo_url: "",
+  initials: "AK",
+  updated_at: "2026-10-10T12:00:00Z",
+};
+
+let aiJobsStore = [
+  {
+    id: "ai-1",
+    episode_id: "ep-1",
+    episode: "Day 1: Getting Started",
+    model: "gemini-1.5-flash",
+    source_type: "transcript",
+    tokens: 284,
+    cost: "$0.0001",
+    status: "approved",
+    created_at: "2026-10-01 10:02",
+  },
+  {
+    id: "ai-2",
+    episode_id: "ep-2",
+    episode: "Day 2: Core Delivery Engine",
+    model: "gemini-1.5-flash",
+    source_type: "transcript",
+    tokens: 312,
+    cost: "$0.0001",
+    status: "approved",
+    created_at: "2026-10-02 10:01",
+  },
+];
+
 // ==============================================================================
 // REPOSITORY IMPLEMENTATION
 // ==============================================================================
@@ -506,6 +591,30 @@ export const dbRepository = {
 
   // --- REVENUE ---
   async getRevenueSettings(): Promise<RevenueSettings> {
+    const db = getDbClient();
+    if (db) {
+      try {
+        const { data, error } = await db.from("revenue_settings").select("*").eq("id", 1).maybeSingle();
+        if (!error && data) {
+          revenueSettingsStore = {
+            id: data.id,
+            goal_label: data.goal_label,
+            target_amount: Number(data.target_amount),
+            target_start: data.target_start,
+            target_end: data.target_end,
+            target_basis: data.target_basis,
+            revenue_definition: data.revenue_definition,
+            gst_treatment: data.gst_treatment,
+            visibility: data.visibility,
+            public_summary_mode: data.public_summary_mode || "standard",
+            notes: data.notes || "",
+            updated_at: data.updated_at,
+          };
+        }
+      } catch {
+        // Graceful fallback to store
+      }
+    }
     return { ...revenueSettingsStore };
   },
 
@@ -517,6 +626,35 @@ export const dbRepository = {
       updated_by: actorId,
       updated_at: new Date().toISOString(),
     };
+
+    const db = getDbClient();
+    if (db) {
+      try {
+        await db.from("revenue_settings").upsert({
+          id: 1,
+          goal_label: revenueSettingsStore.goal_label,
+          target_amount: revenueSettingsStore.target_amount,
+          target_start: revenueSettingsStore.target_start,
+          target_end: revenueSettingsStore.target_end,
+          target_basis: revenueSettingsStore.target_basis,
+          revenue_definition: revenueSettingsStore.revenue_definition,
+          gst_treatment: revenueSettingsStore.gst_treatment,
+          visibility: revenueSettingsStore.visibility,
+          notes: revenueSettingsStore.notes,
+          updated_at: revenueSettingsStore.updated_at,
+        });
+
+        await db.from("audit_log").insert({
+          actor_id: actorId && actorId.startsWith("admin-") ? null : actorId,
+          action: "UPDATE_REVENUE_SETTINGS",
+          entity_type: "revenue",
+          entity_id: "1",
+          diff: { before: prev, after: revenueSettingsStore },
+        });
+      } catch {
+        // Non-blocking fallback
+      }
+    }
 
     // Log to audit trail
     auditLogsStore.unshift({
@@ -537,6 +675,31 @@ export const dbRepository = {
     if (revenueSettingsStore.visibility === "private" && !includePrivate) {
       return [];
     }
+
+    const db = getDbClient();
+    if (db) {
+      try {
+        let query = db.from("revenue_months").select("*").order("month_start", { ascending: true });
+        if (!includePrivate) {
+          query = query.eq("public_visibility", true);
+        }
+        const { data, error } = await query;
+        if (!error && data && data.length > 0) {
+          return data.map((m: any) => ({
+            id: m.id,
+            month_start: m.month_start,
+            actual_amount: Number(m.actual_amount),
+            target_amount: Number(m.target_amount),
+            note: m.note || "",
+            public_visibility: m.public_visibility,
+            updated_at: m.updated_at,
+          }));
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
     return [...revenueMonthsStore].sort((a, b) => a.month_start.localeCompare(b.month_start));
   },
 
@@ -569,6 +732,33 @@ export const dbRepository = {
         updated_at: new Date().toISOString(),
       };
       revenueMonthsStore.push(record);
+    }
+
+    const db = getDbClient();
+    if (db) {
+      try {
+        await db.from("revenue_months").upsert(
+          {
+            month_start: record.month_start,
+            actual_amount: record.actual_amount,
+            target_amount: record.target_amount,
+            note: record.note,
+            public_visibility: record.public_visibility,
+            updated_at: record.updated_at,
+          },
+          { onConflict: "month_start" }
+        );
+
+        await db.from("audit_log").insert({
+          actor_id: actorId && actorId.startsWith("admin-") ? null : actorId,
+          action: "SAVE_REVENUE_MONTH",
+          entity_type: "revenue_month",
+          entity_id: record.month_start,
+          diff: { record },
+        });
+      } catch {
+        // Non-blocking
+      }
     }
 
     revenueSettingsStore.updated_at = new Date().toISOString();
@@ -607,6 +797,171 @@ export const dbRepository = {
     if (!member) throw new Error("Member not found.");
     member.status = "suspended";
     member.updated_at = new Date().toISOString();
+
+    const db = getDbClient();
+    if (db) {
+      try {
+        await db.from("profiles").update({ status: "suspended", updated_at: new Date().toISOString() }).eq("id", id);
+      } catch {
+        // Non-blocking
+      }
+    }
+
     return member;
+  },
+
+  // --- COMPANIES ---
+  async getCompanies(): Promise<Company[]> {
+    const db = getDbClient();
+    if (db) {
+      try {
+        const { data, error } = await db.from("companies").select("*").order("created_at", { ascending: true });
+        if (!error && data && data.length > 0) {
+          return data.map((c: any) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            description: c.description || "",
+            website_url: c.website_url || "",
+            logo_url: c.logo_url || "",
+            visibility: c.visibility || "public",
+            created_at: c.created_at,
+          }));
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    return [...companiesStore];
+  },
+
+  // --- PEOPLE ---
+  async getPeople(): Promise<Person[]> {
+    const db = getDbClient();
+    if (db) {
+      try {
+        const { data, error } = await db.from("people").select("*").order("created_at", { ascending: true });
+        if (!error && data && data.length > 0) {
+          return data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            role: p.role || "",
+            company_name: p.company_name || "",
+            company_id: p.company_id,
+            biography: p.biography || "",
+            portrait_url: p.portrait_url || "",
+            visibility: p.visibility || "public",
+            created_at: p.created_at,
+          }));
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    return [...peopleStore];
+  },
+
+  // --- AI JOBS TELEMETRY ---
+  async getAIJobs(): Promise<any[]> {
+    const db = getDbClient();
+    if (db) {
+      try {
+        const { data, error } = await db.from("ai_jobs").select("*").order("created_at", { ascending: false });
+        if (!error && data && data.length > 0) {
+          return data.map((j: any) => ({
+            id: j.id,
+            episode_id: j.episode_id,
+            episode: j.episode_id ? `Episode ${j.episode_id}` : "Ad-hoc Synthesis",
+            model: j.model,
+            source_type: Array.isArray(j.source_types) ? j.source_types.join(", ") : j.source_types || "transcript",
+            tokens: j.tokens_used || 0,
+            cost: `$${(Number(j.cost_estimate) || 0).toFixed(4)}`,
+            status: j.status || "completed",
+            date: j.created_at ? new Date(j.created_at).toISOString().replace("T", " ").substring(0, 16) : "Recent",
+          }));
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    return [...aiJobsStore];
+  },
+
+  // --- FOUNDER PROFILE ---
+  async getFounderProfile(): Promise<FounderProfile> {
+    const db = getDbClient();
+    if (db) {
+      try {
+        const { data, error } = await db.from("people").select("*").eq("slug", "dr-ajay-kumar").maybeSingle();
+        if (!error && data) {
+          return {
+            name: data.name || founderProfileStore.name,
+            title: data.role || founderProfileStore.title,
+            company_name: data.company_name || founderProfileStore.company_name,
+            company_url: data.external_links?.website || founderProfileStore.company_url,
+            bio: data.biography || founderProfileStore.bio,
+            photo_url: data.portrait_url || founderProfileStore.photo_url,
+            initials: data.name
+              ? data.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+              : "AK",
+            updated_at: data.created_at,
+          };
+        }
+      } catch {
+        // Fallback
+      }
+    }
+    return { ...founderProfileStore };
+  },
+
+  async updateFounderProfile(profile: Partial<FounderProfile>): Promise<FounderProfile> {
+    founderProfileStore = {
+      ...founderProfileStore,
+      ...profile,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (founderProfileStore.name) {
+      founderProfileStore.initials = founderProfileStore.name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+    }
+
+    // Keep peopleStore in sync
+    if (peopleStore[0]) {
+      peopleStore[0].name = founderProfileStore.name;
+      peopleStore[0].role = founderProfileStore.title;
+      peopleStore[0].company_name = founderProfileStore.company_name;
+      peopleStore[0].biography = founderProfileStore.bio;
+      peopleStore[0].portrait_url = founderProfileStore.photo_url;
+      if (!peopleStore[0].external_links) peopleStore[0].external_links = {};
+      peopleStore[0].external_links.website = founderProfileStore.company_url;
+    }
+
+    const db = getDbClient();
+    if (db) {
+      try {
+        await db.from("people").upsert({
+          id: "person-1",
+          name: founderProfileStore.name,
+          slug: "dr-ajay-kumar",
+          role: founderProfileStore.title,
+          company_name: founderProfileStore.company_name,
+          biography: founderProfileStore.bio,
+          portrait_url: founderProfileStore.photo_url || null,
+          external_links: { website: founderProfileStore.company_url },
+          visibility: "public",
+          created_at: new Date().toISOString(),
+        });
+      } catch {
+        // Safe fallback
+      }
+    }
+
+    return { ...founderProfileStore };
   },
 };

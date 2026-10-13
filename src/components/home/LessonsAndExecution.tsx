@@ -70,23 +70,28 @@ export function LessonsAndExecution() {
           return (
             <div
               key={idx}
-              className="bg-white/90 dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#131824] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/40 rounded-2xl p-7 transition-all duration-200 flex flex-col justify-between shadow-sm dark:shadow-card group"
+              className="group relative overflow-hidden bg-white/90 dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#131824] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-7 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_32px_-6px_rgba(245,158,11,0.22)] flex flex-col justify-between shadow-sm dark:shadow-card cursor-default"
             >
+              {/* Golden top accent bar on hover */}
+              <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              {/* Corner ambient gold glow */}
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
               <div>
                 <div className="flex items-center justify-between mb-5">
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-[#161c28] border border-slate-200 dark:border-white/10 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-[#161c28] group-hover:bg-amber-500/10 border border-slate-200 dark:border-white/10 group-hover:border-amber-500/40 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-all duration-300">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 dark:text-slate-500 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 group-hover:text-amber-500 bg-slate-100 dark:bg-white/5 group-hover:bg-amber-500/10 px-2.5 py-1 rounded-full transition-colors">
                     {pillar.tagline}
                   </span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2.5 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2.5 group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
                   {pillar.title}
                 </h3>
                 
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
                   {pillar.description}
                 </p>
               </div>

@@ -2,6 +2,8 @@ import React from "react";
 import { BarChart2, Eye, Search, Users, ShieldCheck } from "lucide-react";
 import { InstagramIcon as Instagram } from "@/components/icons/InstagramIcon";
 
+import { AdminNextSection } from "@/components/admin/AdminNextSection";
+
 export const revalidate = 0;
 
 export default function AdminAnalyticsPage() {
@@ -14,15 +16,15 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-navy-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200/90 dark:border-white/10 gap-4">
         <div>
-          <span className="text-xs uppercase font-bold text-brand-gold tracking-wider">
+          <span className="text-xs uppercase font-bold text-amber-700 dark:text-amber-400 tracking-wider">
             MEASUREMENT & ENGAGEMENT
           </span>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Privacy-Preserving Analytics
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
             Audience telemetry compliant with Section 14.2 of the specification (zero personal comment or email leakage).
           </p>
         </div>
@@ -32,15 +34,15 @@ export default function AdminAnalyticsPage() {
         {metrics.map((m, idx) => {
           const Icon = m.icon;
           return (
-            <div key={idx} className="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-card">
+            <div key={idx} className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-card transition-colors">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   {m.label}
                 </span>
-                <Icon className="w-4 h-4 text-brand-sky" />
+                <Icon className="w-4 h-4 text-amber-500" />
               </div>
-              <div className="text-2xl font-extrabold text-white">{m.value}</div>
-              <span className="text-[11px] text-teal-400 font-semibold mt-1 block">
+              <div className="text-2xl font-black text-slate-900 dark:text-white">{m.value}</div>
+              <span className="text-[11px] text-teal-700 dark:text-teal-400 font-semibold mt-1 block">
                 {m.change} this month
               </span>
             </div>
@@ -48,15 +50,22 @@ export default function AdminAnalyticsPage() {
         })}
       </div>
 
-      <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-card space-y-4">
-        <div className="flex items-center space-x-2 text-xs font-bold text-white uppercase tracking-wider">
-          <ShieldCheck className="w-4 h-4 text-teal-400" />
+      <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-4 transition-colors">
+        <div className="flex items-center space-x-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+          <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
           <span>Section 14.2 Privacy Compliance Verification</span>
         </div>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          In accordance with the specification, all analytics events track anonymous engagement parameters (such as <code className="text-brand-cyan">episode_view</code>, <code className="text-brand-cyan">instagram_open</code>, <code className="text-brand-cyan">episode_search</code>) without ever transmitting user comment bodies, passwords, or personal email addresses.
+        <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+          In accordance with the specification, all analytics events track anonymous engagement parameters (such as <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">episode_view</code>, <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">instagram_open</code>, <code className="text-amber-700 dark:text-amber-400 font-mono font-semibold">episode_search</code>) without ever transmitting user comment bodies, passwords, or personal email addresses.
         </p>
       </div>
+
+      <AdminNextSection
+        nextHref="/admin"
+        nextTitle="Overview"
+        prevHref="/admin/audit-logs"
+        prevTitle="Audit Logs"
+      />
     </div>
   );
 }

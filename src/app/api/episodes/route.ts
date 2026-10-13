@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbRepository } from "@/lib/db/repository";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
+import { verifyAdminAuth } from "@/lib/auth/admin-guard";
 
 export async function GET(req: NextRequest) {
   try {
@@ -27,7 +28,25 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    // Server-side authorization check (Editor / Admin only)
+    const auth = await verifyAdminAuth();
+
+    if (!auth.isAuthenticated || !auth.user) {
+      return NextResponse.json(
+        { error: "Authentication required to publish or create episodes." },
+        { status: 401 }
+      );
+    }
+
+    if (!auth.isEditor) {
+      return NextResponse.json(
+        { error: "Forbidden. Editor or administrator privileges required to create episodes." },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
+    body.created_by = auth.user.id;
 
     // Validate Day Number
     if (!body.day_number || isNaN(Number(body.day_number))) {

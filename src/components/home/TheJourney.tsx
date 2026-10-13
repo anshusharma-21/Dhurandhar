@@ -1,36 +1,90 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import { BookOpen, Compass } from "lucide-react";
 
 export function TheJourney() {
+  const [isInView, setIsInView] = useState(false);
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setIsInView(true);
+      return;
+    }
+
+    const currentRef = sectionRef.current;
+    if (!currentRef) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.unobserve(currentRef);
+        }
+      },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px -40px 0px",
+      }
+    );
+
+    observer.observe(currentRef);
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, []);
+
   const principles = [
     {
       num: "01",
       title: "Radical Public Transparency",
       desc: "No vanity ARR metrics or inflated pipeline numbers. We report actual invoiced delivery, recognised collections, and real unit economics.",
+      delayMs: 150,
     },
     {
       num: "02",
       title: "Daily Architectural Logs",
       desc: "Every day Dr. Ajay Kumar documents operational choices, agentic software pipelines, and engineering trade-offs made in the field.",
+      delayMs: 350,
     },
     {
       num: "03",
       title: "Unvarnished Setbacks",
       desc: "When client deals stall, prompts drift, or delivery timelines hit friction, we do not edit out the struggle. We dissect it openly.",
+      delayMs: 550,
     },
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24" aria-labelledby="the-journey-heading">
+    <section
+      ref={sectionRef}
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24"
+      aria-labelledby="the-journey-heading"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
         
         {/* Left Editorial Manifesto Column */}
-        <div className="lg:col-span-5 space-y-6">
+        <div
+          className={`lg:col-span-5 space-y-6 transition-all duration-700 ease-out ${
+            isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
           <div className="inline-flex items-center space-x-2 text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-[0.2em]">
             <Compass className="w-4 h-4 text-amber-500" />
             <span>THE PURPOSE & MANIFESTO</span>
           </div>
 
-          <h2 id="the-journey-heading" className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+          <h2
+            id="the-journey-heading"
+            className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]"
+          >
             Why document an enterprise journey in public?
           </h2>
 
@@ -58,22 +112,35 @@ export function TheJourney() {
           </div>
         </div>
 
-        {/* Right 3 Core Operating Pillars */}
-        <div className="lg:col-span-7 grid grid-cols-1 gap-5">
+        {/* Right 3 Core Operating Pillars - Staggered Slide In from Right One by One */}
+        <div className="lg:col-span-7 grid grid-cols-1 gap-5 overflow-hidden py-1">
           {principles.map((item) => (
             <div
               key={item.num}
-              className="bg-white/90 dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 sm:p-7 shadow-sm dark:shadow-card hover:border-amber-500/40 transition-all duration-200"
+              style={{
+                transitionDuration: "700ms",
+                transitionDelay: `${item.delayMs}ms`,
+              }}
+              className={`group relative overflow-hidden bg-white/90 dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#141a27] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-6 sm:p-7 shadow-sm dark:shadow-card hover:shadow-[0_12px_32px_-6px_rgba(245,158,11,0.22)] hover:-translate-y-1.5 hover:translate-x-1.5 transition-all ease-out cursor-default ${
+                isInView
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 translate-x-16"
+              }`}
             >
+              {/* Golden top accent bar on hover */}
+              <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              {/* Corner ambient gold glow */}
+              <div className="absolute -top-10 -right-10 w-24 h-24 bg-amber-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
               <div className="flex items-start space-x-5">
-                <span className="font-mono text-2xl font-black text-amber-600 dark:text-amber-400/80 shrink-0">
+                <span className="font-mono text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400/80 group-hover:text-amber-500 dark:group-hover:text-amber-300 group-hover:scale-110 transition-all shrink-0">
                   {item.num}
                 </span>
                 <div className="space-y-1.5">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
                     {item.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                     {item.desc}
                   </p>
                 </div>

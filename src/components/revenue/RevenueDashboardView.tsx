@@ -109,83 +109,87 @@ export function RevenueDashboardView({
     <div className="space-y-12">
       {/* Executive Progress Tiles */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-card">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold block mb-1">
+        <div className="group relative overflow-hidden bg-white dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#131926] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-5 sm:p-6 shadow-sm dark:shadow-card hover:-translate-y-1.5 transition-all duration-300">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold block mb-1">
             Goal Target
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-white">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             {formatINR(targetAmount, true)}
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block font-mono">
             Basis: {settings.target_basis}
           </span>
         </div>
 
-        <div className="bg-navy-900 border border-teal-800/40 rounded-2xl p-5 shadow-card">
-          <span className="text-xs uppercase tracking-wider text-teal-400 font-semibold block mb-1">
+        <div className="group relative overflow-hidden bg-white dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#131926] border border-teal-500/30 dark:border-teal-800/40 hover:border-teal-500/70 rounded-2xl p-5 sm:p-6 shadow-sm dark:shadow-card hover:-translate-y-1.5 transition-all duration-300">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-teal-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <span className="text-xs uppercase tracking-wider text-teal-700 dark:text-teal-400 font-bold block mb-1">
             Reported Revenue
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-teal-300">
+          <div className="text-2xl sm:text-3xl font-black text-teal-700 dark:text-teal-300 tracking-tight">
             {formatINR(totalActual, true)}
           </div>
-          <span className="text-[11px] text-teal-500/80 mt-1 block">
+          <span className="text-[11px] text-teal-600/90 dark:text-teal-400/80 mt-1 block font-mono">
             Definition: {settings.revenue_definition}
           </span>
         </div>
 
-        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5 shadow-card">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold block mb-1">
+        <div className="group relative overflow-hidden bg-white dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#131926] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl p-5 sm:p-6 shadow-sm dark:shadow-card hover:-translate-y-1.5 transition-all duration-300">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold block mb-1">
             Remaining Gap
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-slate-200">
+          <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-200 tracking-tight">
             {isTargetExceeded ? "Target Exceeded" : formatINR(remainingAmount, true)}
           </div>
-          <span className="text-[11px] text-slate-500 mt-1 block">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block font-mono">
             GST: {settings.gst_treatment}
           </span>
         </div>
 
-        <div className="bg-navy-900 border border-brand-gold/40 rounded-2xl p-5 shadow-card">
-          <span className="text-xs uppercase tracking-wider text-brand-gold font-semibold block mb-1">
+        <div className="group relative overflow-hidden bg-white dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#131926] border border-amber-500/40 hover:border-amber-500/80 rounded-2xl p-5 sm:p-6 shadow-sm dark:shadow-card hover:-translate-y-1.5 transition-all duration-300">
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <span className="text-xs uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold block mb-1">
             Progress Percentage
           </span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-300">
+          <div className="text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-300 tracking-tight">
             {percentage}%
           </div>
-          <span className="text-[11px] text-amber-500/80 mt-1 block">
+          <span className="text-[11px] text-amber-600/90 dark:text-amber-400/80 mt-1 block font-mono">
             Updated: {formatDate(lastUpdated)}
           </span>
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-card space-y-3">
-        <div className="flex justify-between items-center text-xs font-semibold">
-          <span className="text-slate-400">Journey Progress</span>
-          <span className="text-brand-gold">{percentage}% of ₹30 Crore Goal</span>
+      {/* Progress Bar Container */}
+      <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 border-t-2 border-t-amber-500/40 rounded-2xl p-6 shadow-sm dark:shadow-card space-y-3 transition-colors">
+        <div className="flex justify-between items-center text-xs font-bold">
+          <span className="text-slate-600 dark:text-slate-400 uppercase tracking-wider">Journey Progress</span>
+          <span className="text-amber-700 dark:text-amber-400">{percentage}% of ₹30 Crore Goal</span>
         </div>
-        <div className="w-full h-4 rounded-full bg-navy-950 border border-navy-800 overflow-hidden p-0.5">
+        <div className="w-full h-4 rounded-full bg-slate-100 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 overflow-hidden p-0.5 shadow-inner">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-brand-sky via-cyan-400 to-amber-400 transition-all duration-1000"
+            className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-300 transition-all duration-1000 shadow-sm"
             style={{ width: `${Math.min(100, Math.max(1, percentage))}%` }}
           />
         </div>
-        <p className="text-[11px] text-slate-500 text-center">
+        <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center font-medium">
           {isTargetExceeded 
             ? "Goal exceeded! AI Automation Labs has crossed the ₹30 Crore benchmark." 
             : `₹${((300000000 - totalActual) / 10000000).toFixed(2)} Crore remaining to target.`}
         </p>
       </div>
 
-      {/* Monthly Chart (Suppressed if summary only) */}
+      {/* Monthly Chart */}
       {visibility === "public_detailed" && (
-        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6 sm:p-8 shadow-card">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-navy-800 gap-4">
+        <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 sm:p-8 shadow-sm dark:shadow-card transition-colors">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 mb-6 border-b border-slate-200 dark:border-navy-800 gap-4">
             <div>
-              <h2 className="text-lg font-bold text-white mb-1">
+              <h2 className="text-lg font-black text-slate-900 dark:text-white mb-1">
                 Monthly Target vs Actual (in ₹ Lakhs)
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Tracking monthly financial velocity across corporate automation contracts.
               </p>
             </div>
@@ -193,9 +197,9 @@ export function RevenueDashboardView({
               <a
                 href="/api/revenue/export"
                 download
-                className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-navy-950 hover:bg-navy-800 text-slate-300 hover:text-white rounded-lg text-xs border border-navy-700 transition-colors"
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-navy-950 dark:hover:bg-navy-800 text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl text-xs font-bold border border-slate-300 dark:border-navy-700 transition-colors"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                 <span>Export CSV</span>
               </a>
             </div>
@@ -204,57 +208,57 @@ export function RevenueDashboardView({
           <div className="w-full h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
                 <YAxis stroke="#64748b" fontSize={11} unit="L" />
                 <Tooltip content={customTooltip} />
                 <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "12px" }} />
-                <Bar dataKey="Target" fill="#334155" radius={[4, 4, 0, 0]} name="Target" />
-                <Bar dataKey="Actual" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Actual" />
+                <Bar dataKey="Target" fill="#94a3b8" radius={[4, 4, 0, 0]} name="Target" />
+                <Bar dataKey="Actual" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Actual" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* Detailed Monthly Actuals Table (AC-14: handles "Not entered" states) */}
+      {/* Detailed Monthly Actuals Table */}
       {visibility === "public_detailed" && (
-        <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6 shadow-card overflow-hidden">
-          <h2 className="text-lg font-bold text-white mb-4">
+        <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 shadow-sm dark:shadow-card overflow-hidden transition-colors">
+          <h2 className="text-lg font-black text-slate-900 dark:text-white mb-4">
             Detailed Monthly Ledger
           </h2>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-navy-950 text-slate-400 uppercase tracking-wider text-[11px] border-b border-navy-800">
+              <thead className="bg-slate-100 dark:bg-navy-950 text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-navy-800">
                 <tr>
-                  <th className="py-3 px-4 font-semibold">Month</th>
-                  <th className="py-3 px-4 font-semibold">Target (INR)</th>
-                  <th className="py-3 px-4 font-semibold">Actual (INR)</th>
-                  <th className="py-3 px-4 font-semibold">Variance</th>
-                  <th className="py-3 px-4 font-semibold">Status / Note</th>
+                  <th className="py-3 px-4 font-bold">Month</th>
+                  <th className="py-3 px-4 font-bold">Target (INR)</th>
+                  <th className="py-3 px-4 font-bold">Actual (INR)</th>
+                  <th className="py-3 px-4 font-bold">Variance</th>
+                  <th className="py-3 px-4 font-bold">Status / Note</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-navy-800 text-slate-300">
+              <tbody className="divide-y divide-slate-200 dark:divide-navy-800 text-slate-700 dark:text-slate-300">
                 {monthlyTrend.map((row) => (
-                  <tr key={row.monthStart} className="hover:bg-navy-850/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-white">{row.month}</td>
-                    <td className="py-3.5 px-4">{formatINR(row.target, true)}</td>
-                    <td className="py-3.5 px-4 font-medium text-teal-300">
+                  <tr key={row.monthStart} className="hover:bg-slate-50 dark:hover:bg-navy-850/50 transition-colors">
+                    <td className="py-3.5 px-4 font-black text-slate-900 dark:text-white">{row.month}</td>
+                    <td className="py-3.5 px-4 font-medium">{formatINR(row.target, true)}</td>
+                    <td className="py-3.5 px-4 font-bold text-teal-700 dark:text-teal-300">
                       {row.hasData ? formatINR(row.actual, true) : (
-                        <span className="italic text-slate-500">Not entered</span>
+                        <span className="italic text-slate-400">Not entered</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4">
                       {row.hasData ? (
-                        <span className={row.variance >= 0 ? "text-teal-400" : "text-amber-400"}>
+                        <span className={row.variance >= 0 ? "text-teal-700 dark:text-teal-400 font-bold" : "text-amber-700 dark:text-amber-400 font-bold"}>
                           {row.variance >= 0 ? "+" : ""}{formatINR(row.variance, true)} ({row.variancePct}%)
                         </span>
                       ) : (
-                        <span className="text-slate-500">—</span>
+                        <span className="text-slate-400">—</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400 text-[11px]">
+                    <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
                       {row.note || (row.hasData ? "Normal operations" : "Pending month-end close")}
                     </td>
                   </tr>
@@ -266,8 +270,8 @@ export function RevenueDashboardView({
       )}
 
       {/* Disclaimers & Definitions Note */}
-      <div className="bg-navy-950 border border-navy-800 rounded-2xl p-6 text-xs text-slate-400 space-y-2">
-        <div className="flex items-center space-x-2 text-brand-gold font-semibold text-xs">
+      <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 text-xs text-slate-600 dark:text-slate-400 space-y-2 shadow-sm dark:shadow-card transition-colors">
+        <div className="flex items-center space-x-2 text-amber-700 dark:text-amber-400 font-semibold text-xs">
           <Info className="w-4 h-4" />
           <span>Accounting Definitions & Transparency Note</span>
         </div>

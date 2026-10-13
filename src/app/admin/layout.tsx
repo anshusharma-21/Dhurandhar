@@ -1,32 +1,57 @@
 import React from "react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { ShieldCheck, Bell, User } from "lucide-react";
+import { AdminHeaderNav } from "@/components/admin/AdminHeaderNav";
+import { verifyAdminAuth } from "@/lib/auth/admin-guard";
+import { ShieldCheck } from "lucide-react";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = headers();
+  const isAdminAuth = headersList.get("x-is-admin-auth") === "true";
+
+  // Dedicated layout for admin authentication pages (/admin/login, /admin/setup)
+  if (isAdminAuth) {
+    return (
+      <div className="min-h-screen bg-navy-950 text-slate-100 flex flex-col justify-center items-center p-4">
+        {children}
+      </div>
+    );
+  }
+
+  // Server-side authorization verification for all protected admin pages
+  const auth = await verifyAdminAuth();
+
+  if (!auth.isAuthenticated || !auth.user) {
+    redirect("/admin/login");
+  }
+
+  if (!auth.isAdmin && !auth.isEditor) {
+    redirect("/admin/login?error=Forbidden&message=Administrator+or+Editor+privileges+required");
+  }
+
+  const displayName = auth.profile?.display_name || "Administrator";
+  const userRole = auth.profile?.role || "admin";
+
   return (
-    <div className="flex min-h-screen bg-navy-950 text-slate-100">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#07090e] text-slate-900 dark:text-slate-100 transition-colors duration-150">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Admin Workspace Top Bar */}
-        <header className="h-16 bg-navy-900 border-b border-navy-800 px-6 sm:px-8 flex items-center justify-between shrink-0">
-          <div className="flex items-center space-x-2 text-xs text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-brand-cyan" />
-            <span className="font-semibold text-white">Project Dhurandhar Control Console</span>
-            <span className="text-slate-600">|</span>
-            <span className="text-teal-400 font-medium">Session: Administrator</span>
+        {/* Clean Admin Workspace Top Bar */}
+        <header className="h-16 bg-white/95 dark:bg-[#090d14]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-white/10 px-6 sm:px-8 flex items-center justify-between shrink-0 transition-colors">
+          <div className="flex items-center space-x-2 text-xs">
+            <ShieldCheck className="w-4 h-4 text-amber-500" />
+            <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">
+              Executive Control Console
+            </span>
           </div>
 
-          <div className="flex items-center space-x-4 text-xs">
-            <span className="text-slate-400 hidden sm:inline">
-              Host: <strong className="text-slate-200">projectdhurandhar.automationlabs.online</strong>
-            </span>
-            <div className="w-8 h-8 rounded-full bg-navy-800 border border-navy-700 flex items-center justify-center font-bold text-brand-gold text-xs">
-              AK
-            </div>
+          <div className="flex items-center space-x-3">
+            <AdminHeaderNav displayName={displayName} role={userRole} />
           </div>
         </header>
 
@@ -38,3 +63,4 @@ export default function AdminLayout({
     </div>
   );
 }
+

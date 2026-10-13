@@ -5,8 +5,8 @@ import { DhurandharWordmark } from "@/components/brand/DhurandharWordmark";
 
 export function Footer() {
   return (
-    <footer className="bg-[#f7f5ed] dark:bg-[#07090e] border-t border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-400 transition-colors duration-150">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 md:py-20">
+    <footer className="bg-slate-50 dark:bg-[#07090e] border-t border-slate-200/90 dark:border-white/10 text-slate-600 dark:text-slate-400 transition-colors duration-150">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-14">
           {/* Column 1: Brand & Identity */}
           <div className="space-y-4 md:col-span-1">

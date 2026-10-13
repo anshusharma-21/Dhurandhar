@@ -13,7 +13,9 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
     : formatDate(episode.created_at);
 
   return (
-    <article className="group bg-white/90 dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#121824] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/40 rounded-2xl overflow-hidden transition-all duration-200 flex flex-col justify-between shadow-sm dark:shadow-card">
+    <article className="group relative overflow-hidden bg-white/90 dark:bg-[#0e131d] hover:bg-slate-50 dark:hover:bg-[#121824] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/60 dark:hover:border-amber-400/60 rounded-2xl transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_32px_-6px_rgba(245,158,11,0.22)] flex flex-col justify-between shadow-sm dark:shadow-card">
+      {/* Golden top accent bar on hover */}
+      <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       {/* Top Content / Day Badge */}
       <div className="p-6 pb-4">
         <div className="flex items-center justify-between gap-3 mb-3">

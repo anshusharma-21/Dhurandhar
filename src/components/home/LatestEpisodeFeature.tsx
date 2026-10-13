@@ -48,11 +48,14 @@ export function LatestEpisodeFeature({ episode }: LatestEpisodeFeatureProps) {
         </div>
       </div>
 
-      <div className="bg-white/90 dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-150">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      <div className="bg-white/90 dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 border-t-2 border-t-amber-500/40 rounded-3xl p-6 sm:p-8 lg:p-10 shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-colors duration-150 relative overflow-hidden">
+        {/* Subtle Ambient Gold Glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
-          {/* Left Column: Embed / Media Preview (lg:col-span-6) */}
-          <div className="lg:col-span-6">
+          {/* Left Column: Embed / Media Preview - Wider Cinema Frame (lg:col-span-7) */}
+          <div className="lg:col-span-7 w-full">
             <InstagramEmbed
               url={episode.instagram_url}
               dayNumber={episode.day_number}
@@ -60,8 +63,8 @@ export function LatestEpisodeFeature({ episode }: LatestEpisodeFeatureProps) {
             />
           </div>
 
-          {/* Right Column: Episode Context & Verified Takeaways (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col justify-between h-full space-y-6">
+          {/* Right Column: Episode Context & Verified Takeaways (lg:col-span-5) */}
+          <div className="lg:col-span-5 flex flex-col justify-between h-full space-y-6">
             <div className="space-y-5">
               <div className="flex items-center space-x-3">
                 <span className="px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-500/30 text-xs font-extrabold uppercase tracking-wider">
@@ -80,7 +83,7 @@ export function LatestEpisodeFeature({ episode }: LatestEpisodeFeatureProps) {
 
               {/* Verified Editorial Summary */}
               {episode.summary && (
-                <div className="bg-slate-50/90 dark:bg-[#131824] border border-slate-200/80 dark:border-white/10 rounded-2xl p-5">
+                <div className="bg-slate-50/90 dark:bg-[#131824] border border-slate-200/80 dark:border-white/10 rounded-2xl p-5 transition-colors">
                   <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-400 block mb-2">
                     Executive Briefing
                   </span>
@@ -90,17 +93,22 @@ export function LatestEpisodeFeature({ episode }: LatestEpisodeFeatureProps) {
                 </div>
               )}
 
-              {/* Key Decisions & Takeaways */}
+              {/* Key Decisions & Takeaways with Interactive Hover Color Shift */}
               {episode.takeaways && episode.takeaways.length > 0 && (
                 <div className="space-y-3">
                   <span className="text-xs font-bold text-slate-900 dark:text-slate-200 uppercase tracking-wider block">
                     Key Decisions & Takeaways:
                   </span>
-                  <ul className="space-y-2.5">
+                  <ul className="space-y-2">
                     {episode.takeaways.map((takeaway, idx) => (
-                      <li key={idx} className="flex items-start space-x-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-normal">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-2" />
-                        <span>{takeaway}</span>
+                      <li
+                        key={idx}
+                        className="group flex items-start space-x-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-normal p-2.5 rounded-xl border border-transparent hover:border-amber-500/30 hover:bg-amber-500/[0.08] dark:hover:bg-amber-400/[0.08] hover:translate-x-1 transition-all duration-200 cursor-pointer"
+                      >
+                        <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 mt-1.5 group-hover:scale-125 group-hover:bg-amber-400 group-hover:shadow-[0_0_10px_rgba(245,158,11,0.9)] transition-all duration-200" />
+                        <span className="group-hover:text-amber-800 dark:group-hover:text-amber-300 group-hover:font-medium transition-colors duration-200">
+                          {takeaway}
+                        </span>
                       </li>
                     ))}
                   </ul>

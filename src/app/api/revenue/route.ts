@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbRepository } from "@/lib/db/repository";
 import { calculateRevenueMetrics } from "@/lib/revenue/calculator";
+import { verifyAdminAuth } from "@/lib/auth/admin-guard";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const isAdmin = searchParams.get("admin") === "true";
+    const requestedAdmin = searchParams.get("admin") === "true";
+    let isAdmin = false;
+
+    // Server-side authorization check for admin view
+    if (requestedAdmin) {
+      const auth = await verifyAdminAuth();
+      if (auth.isAdmin) {
+        isAdmin = true;
+      }
+    }
 
     const settings = await dbRepository.getRevenueSettings();
     const months = await dbRepository.getRevenueMonths(isAdmin);
@@ -55,16 +65,101 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const actorId = body.actorId || "admin-1";
+    // Enforce administrator role on the server
+    const auth = await verifyAdminAuth();
+
+    if (!auth.isAuthenticated || !auth.user) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    }
+
+    if (!auth.isAdmin) {
+      return NextResponse.json(
+        { error: "Forbidden. Administrator privileges required to alter financial records." },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const actorId = auth.user.id;
 
     if (body.type === "settings") {
-      const updated = await dbRepository.updateRevenueSettings(body.settings, actorId);
+      const s = body.settings;
+      if (!s || typeof s !== "object") {
+        return NextResponse.json({ error: "Invalid settings payload." }, { status: 400 });
+      }
+
+      const targetAmount = Number(s.target_amount);
+      if (isNaN(targetAmount) || targetAmount <= 0) {
+        return NextResponse.json({ error: "Target amount must be a positive number." }, { status: 400 });
+      }
+
+      if (s.target_basis && !["cumulative", "financial_year"].includes(s.target_basis)) {
+        return NextResponse.json({ error: "Invalid target basis." }, { status: 400 });
+      }
+
+      if (s.revenue_definition && !["recognised", "invoiced", "cash_collected"].includes(s.revenue_definition)) {
+        return NextResponse.json({ error: "Invalid revenue definition." }, { status: 400 });
+      }
+
+      if (s.gst_treatment && !["included", "excluded"].includes(s.gst_treatment)) {
+        return NextResponse.json({ error: "Invalid GST treatment." }, { status: 400 });
+      }
+
+      if (s.visibility && !["public_detailed", "public_summary", "private"].includes(s.visibility)) {
+        return NextResponse.json({ error: "Invalid visibility setting." }, { status: 400 });
+      }
+
+      const updated = await dbRepository.updateRevenueSettings(s, actorId);
       return NextResponse.json(updated);
     }
 
     if (body.type === "month") {
-      const record = await dbRepository.saveRevenueMonth(body.monthData, actorId);
+      const m = body.monthData;
+      if (!m || typeof m !== "object") {
+        return NextResponse.json({ error: "Invalid monthData payload." }, { status: 400 });
+      }
+
+      let monthStart = typeof m.month_start === "string" ? m.month_start.trim() : "";
+      
+      // Auto-normalize YYYY-MM to YYYY-MM-01
+      if (/^\d{4}-\d{2}$/.test(monthStart)) {
+        monthStart = `${monthStart}-01`;
+      } 
+      // Auto-normalize any day in month YYYY-MM-DD to YYYY-MM-01
+      else if (/^\d{4}-\d{2}-\d{2}$/.test(monthStart)) {
+        const [y, mm] = monthStart.split("-");
+        monthStart = `${y}-${mm}-01`;
+      }
+
+      if (!monthStart || !/^\d{4}-\d{2}-01$/.test(monthStart)) {
+        return NextResponse.json(
+          { error: "Invalid month_start format. Expected YYYY-MM-01 (e.g. 2026-10-01)." },
+          { status: 400 }
+        );
+      }
+
+      const actualAmount = Number(m.actual_amount);
+      if (isNaN(actualAmount) || actualAmount < 0) {
+        return NextResponse.json(
+          { error: "Actual revenue cannot be negative. Credit notes must be entered as documented adjustments." },
+          { status: 400 }
+        );
+      }
+
+      const targetAmount = Number(m.target_amount ?? 0);
+      if (isNaN(targetAmount) || targetAmount < 0) {
+        return NextResponse.json({ error: "Target revenue cannot be negative." }, { status: 400 });
+      }
+
+      const record = await dbRepository.saveRevenueMonth(
+        {
+          month_start: monthStart,
+          actual_amount: actualAmount,
+          target_amount: targetAmount,
+          note: m.note,
+        },
+        actorId
+      );
       return NextResponse.json(record);
     }
 

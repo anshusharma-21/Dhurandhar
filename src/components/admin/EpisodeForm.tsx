@@ -178,15 +178,14 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
   return (
     <div className="space-y-8">
       {/* Top Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-navy-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200/90 dark:border-white/10 gap-4">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <BackButton fallbackUrl="/admin/episodes" label="← Back to Admin Episodes" />
-            <span className="text-xs uppercase font-bold text-brand-gold tracking-wider">
+            <span className="text-xs uppercase font-black text-amber-700 dark:text-amber-400 tracking-wider">
               {initialEpisode ? "EDIT EPISODE" : "NEW DAILY VLOG"}
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Day {dayNumber}: {title || "Untitled Episode"}
           </h1>
         </div>
@@ -195,9 +194,9 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
           <button
             type="button"
             onClick={() => setPreviewMode(!previewMode)}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-navy-900 hover:bg-navy-800 text-slate-200 border border-navy-700 rounded-xl text-xs font-semibold"
+            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 rounded-xl text-xs font-bold transition-colors"
           >
-            <Eye className="w-4 h-4 text-brand-sky" />
+            <Eye className="w-4 h-4 text-amber-500" />
             <span>{previewMode ? "Edit Form" : "Live Preview"}</span>
           </button>
 
@@ -205,7 +204,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
             type="button"
             disabled={saving}
             onClick={() => handleSave("draft")}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-navy-800 hover:bg-navy-700 text-slate-200 border border-navy-600 rounded-xl text-xs font-semibold"
+            className="inline-flex items-center space-x-1.5 px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/15 text-slate-900 dark:text-white border border-slate-300 dark:border-white/15 rounded-xl text-xs font-bold transition-colors"
           >
             <Save className="w-4 h-4" />
             <span>Save Draft</span>
@@ -215,7 +214,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
             type="button"
             disabled={saving}
             onClick={() => handleSave("published")}
-            className="inline-flex items-center space-x-1.5 px-5 py-2 bg-gradient-to-r from-brand-sky to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-slate-950 font-bold rounded-xl text-xs shadow-subtle"
+            className="inline-flex items-center space-x-1.5 px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider shadow-sm transition-all"
           >
             <Send className="w-4 h-4 text-slate-950" />
             <span>Publish Now</span>
@@ -243,15 +242,15 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
 
       {/* Permanent URL Indicator */}
       {initialEpisode && (
-        <div className="bg-navy-950 border border-navy-800 rounded-xl p-3.5 flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-2 text-slate-400 truncate mr-2">
-            <span className="font-semibold text-slate-300">Public URL:</span>
-            <span className="text-brand-sky truncate" suppressHydrationWarning>{permalinkUrl}</span>
+        <div className="bg-slate-100 dark:bg-[#0e131d] border border-slate-200 dark:border-white/10 rounded-xl p-3.5 flex items-center justify-between text-xs transition-colors">
+          <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 truncate mr-2">
+            <span className="font-semibold text-slate-900 dark:text-slate-200">Public URL:</span>
+            <span className="text-amber-600 dark:text-amber-400 truncate" suppressHydrationWarning>{permalinkUrl}</span>
           </div>
           <button
             type="button"
             onClick={copyPermalink}
-            className="inline-flex items-center space-x-1 px-3 py-1 bg-navy-900 hover:bg-navy-800 text-slate-300 rounded border border-navy-700 text-[11px] shrink-0"
+            className="inline-flex items-center space-x-1 px-3 py-1 bg-white hover:bg-slate-50 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded border border-slate-300 dark:border-white/10 text-[11px] shrink-0 transition-colors"
           >
             <Copy className="w-3.5 h-3.5" />
             <span>{copiedLink ? "Copied!" : "Copy URL"}</span>
@@ -261,25 +260,25 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
 
       {/* Mode 1: Live Preview */}
       {previewMode ? (
-        <div className="bg-navy-950 border border-navy-800 rounded-3xl p-6 sm:p-8 space-y-6">
-          <div className="text-xs text-brand-gold uppercase tracking-wider font-bold">
+        <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm dark:shadow-card transition-colors">
+          <div className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wider font-bold">
             Live Preview (Day {dayNumber})
           </div>
-          <h2 className="text-3xl font-extrabold text-white">{title || "Untitled Episode"}</h2>
+          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">{title || "Untitled Episode"}</h2>
           {instagramUrl && (
             <InstagramEmbed url={instagramUrl} dayNumber={dayNumber} title={title} />
           )}
-          <div className="bg-navy-900 p-6 rounded-2xl border border-navy-800 text-xs sm:text-sm text-slate-200 leading-relaxed">
-            <span className="font-bold text-teal-400 block mb-2 uppercase tracking-wider text-xs">Summary</span>
+          <div className="bg-slate-50 dark:bg-[#070b12] p-6 rounded-2xl border border-slate-200 dark:border-white/10 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed transition-colors">
+            <span className="font-bold text-teal-600 dark:text-teal-400 block mb-2 uppercase tracking-wider text-xs">Summary</span>
             {summary || "No summary provided yet."}
           </div>
           {takeaways.length > 0 && (
-            <div className="bg-navy-900 p-6 rounded-2xl border border-navy-800 text-xs">
-              <span className="font-bold text-white block mb-2 uppercase tracking-wider">Key Takeaways</span>
+            <div className="bg-slate-50 dark:bg-[#070b12] p-6 rounded-2xl border border-slate-200 dark:border-white/10 text-xs transition-colors">
+              <span className="font-bold text-slate-900 dark:text-white block mb-2 uppercase tracking-wider">Key Takeaways</span>
               <ul className="space-y-2">
                 {takeaways.map((t, i) => (
-                  <li key={i} className="flex items-start space-x-2 text-slate-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan shrink-0 mt-1.5" />
+                  <li key={i} className="flex items-start space-x-2 text-slate-700 dark:text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5" />
                     <span>{t}</span>
                   </li>
                 ))}
@@ -295,7 +294,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
             {/* Day Number and Title */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="sm:col-span-1">
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Day Number *
                 </label>
                 <input
@@ -303,13 +302,13 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                   min="1"
                   value={dayNumber}
                   onChange={(e) => setDayNumber(parseInt(e.target.value, 10))}
-                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3 text-sm text-white font-bold focus:border-brand-sky focus:ring-1 focus:ring-brand-sky"
+                  className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition-colors"
                   required
                 />
               </div>
 
               <div className="sm:col-span-3">
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Episode Title *
                 </label>
                 <input
@@ -317,7 +316,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Building the Core Delivery Engine"
-                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3 text-sm text-white focus:border-brand-sky focus:ring-1 focus:ring-brand-sky"
+                  className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                   required
                 />
               </div>
@@ -325,7 +324,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
 
             {/* Instagram URL */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Instagram Reel / Post URL *
               </label>
               <input
@@ -333,14 +332,14 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                 value={instagramUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 placeholder="https://www.instagram.com/reel/C7z2bcdeFGH/"
-                className={`w-full bg-navy-950 border rounded-xl p-3 text-sm text-white focus:outline-none ${
+                className={`w-full bg-slate-50 dark:bg-[#070b12] border rounded-xl p-3 text-sm text-slate-900 dark:text-white focus:outline-none transition-colors ${
                   urlValidation.isValid
-                    ? "border-navy-700 focus:border-brand-sky"
-                    : "border-red-500 text-red-200"
+                    ? "border-slate-300 dark:border-white/10 focus:border-amber-500"
+                    : "border-red-500 text-red-600 dark:text-red-300"
                 }`}
               />
               {!urlValidation.isValid && (
-                <p className="text-xs text-red-400 mt-1.5 flex items-center space-x-1">
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1.5 flex items-center space-x-1">
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>{urlValidation.message}</span>
                 </p>
@@ -349,7 +348,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
 
             {/* Spoken Transcript / Source Material */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Transcript / Spoken Text (Required for robust AI generation)
               </label>
               <textarea
@@ -357,14 +356,14 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                 value={transcriptText}
                 onChange={(e) => setTranscriptText(e.target.value)}
                 placeholder="Paste the spoken transcript or voice notes from the vlog..."
-                className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3 text-xs text-white focus:border-brand-sky resize-none"
+                className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 resize-none transition-colors"
               />
             </div>
 
             {/* Caption & Admin Notes */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Instagram Caption
                 </label>
                 <textarea
@@ -372,12 +371,12 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   placeholder="Original post caption..."
-                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3 text-xs text-white focus:border-brand-sky resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 resize-none transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Internal Context Notes
                 </label>
                 <textarea
@@ -385,7 +384,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                   value={contextNotes}
                   onChange={(e) => setContextNotes(e.target.value)}
                   placeholder="Financial context, client names, background details..."
-                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3 text-xs text-white focus:border-brand-sky resize-none"
+                  className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 resize-none transition-colors"
                 />
               </div>
             </div>
@@ -404,7 +403,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
 
             {/* Human-Approved Summary */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Episode Summary (Publicly displayed) *
               </label>
               <textarea
@@ -412,14 +411,14 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="Final editorial summary reviewed and approved by human editor..."
-                className="w-full bg-navy-950 border border-navy-700 rounded-xl p-3.5 text-xs sm:text-sm text-white focus:border-brand-sky resize-none"
+                className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-3.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 resize-none transition-colors"
                 required
               />
             </div>
 
             {/* Key Takeaways */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Key Strategic Takeaways (3–5 bullet points)
               </label>
               <div className="flex gap-2 mb-3">
@@ -434,12 +433,12 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                     }
                   }}
                   placeholder="Enter takeaway point and press Add..."
-                  className="flex-1 bg-navy-950 border border-navy-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-sky"
+                  className="flex-1 bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                 />
                 <button
                   type="button"
                   onClick={handleAddTakeaway}
-                  className="px-4 py-2 bg-navy-800 hover:bg-navy-700 text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/15 text-slate-900 dark:text-white rounded-xl text-xs font-semibold transition-colors"
                 >
                   Add
                 </button>
@@ -449,13 +448,13 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                 {takeaways.map((takeaway, idx) => (
                   <li
                     key={idx}
-                    className="flex items-center justify-between bg-navy-950 p-2.5 rounded-lg border border-navy-800 text-xs text-slate-300"
+                    className="flex items-center justify-between bg-slate-50 dark:bg-[#070b12] p-2.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs text-slate-800 dark:text-slate-300 transition-colors"
                   >
                     <span>{takeaway}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveTakeaway(idx)}
-                      className="text-red-400 hover:text-red-300 text-xs ml-2 font-bold"
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-xs ml-2 font-bold"
                     >
                       ×
                     </button>
@@ -468,17 +467,17 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
           {/* Right Sidebar (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
             {/* Publication Settings */}
-            <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5 space-y-4 shadow-card">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+            <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-5 space-y-4 shadow-sm dark:shadow-card transition-colors">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                 Publication State
               </h3>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Status</label>
+                <label className="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Status</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as EpisodeStatus)}
-                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-sky"
+                  className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                 >
                   <option value="draft">Draft (Private)</option>
                   <option value="pending_review">Pending Review</option>
@@ -489,26 +488,26 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Slug (URL)</label>
+                <label className="block text-[11px] text-slate-600 dark:text-slate-400 mb-1">Slug (URL)</label>
                 <input
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="Auto-generated if empty"
-                  className="w-full bg-navy-950 border border-navy-700 rounded-xl p-2.5 text-xs text-white focus:border-brand-sky"
+                  className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl p-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition-colors"
                 />
-                <span className="text-[10px] text-slate-500 mt-1 block">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
                   Preserved across title edits unless edited here.
                 </span>
               </div>
             </div>
 
             {/* Tags / Taxonomy Multi-select */}
-            <div className="bg-navy-900 border border-navy-800 rounded-2xl p-5 space-y-3 shadow-card">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+            <div className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-5 space-y-3 shadow-sm dark:shadow-card transition-colors">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                 Topic Taxonomy
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-600 dark:text-slate-400">
                 Select relevant topics for archive filtering:
               </p>
 
@@ -522,8 +521,8 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                       onClick={() => handleToggleTag(tag.id)}
                       className={`text-[11px] px-2.5 py-1 rounded-lg border transition-colors ${
                         selected
-                          ? "bg-brand-sky/20 border-brand-sky text-brand-sky font-semibold"
-                          : "bg-navy-950 border-navy-800 text-slate-400 hover:text-white"
+                          ? "bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-400 font-semibold shadow-sm"
+                          : "bg-slate-100 hover:bg-slate-200 dark:bg-[#070b12] border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       #{tag.label}

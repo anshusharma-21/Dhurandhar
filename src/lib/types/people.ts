@@ -22,3 +22,14 @@ export interface Company {
   visibility: "draft" | "public";
   created_at: string;
 }
+
+export interface FounderProfile {
+  name: string;
+  title: string;
+  company_name: string;
+  company_url: string;
+  bio: string;
+  photo_url?: string;
+  initials?: string;
+  updated_at?: string;
+}
