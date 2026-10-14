@@ -163,6 +163,55 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(record);
     }
 
+    if (body.type === "milestone") {
+      const m = body.milestone;
+      if (!m || typeof m !== "object") {
+        return NextResponse.json({ error: "Invalid milestone payload." }, { status: 400 });
+      }
+
+      if (!m.title || !m.title.trim()) {
+        return NextResponse.json({ error: "Milestone title is required." }, { status: 400 });
+      }
+
+      const saved = await dbRepository.saveMilestone(
+        {
+          id: m.id,
+          title: m.title.trim(),
+          description: m.description?.trim() || "",
+          milestone_date: m.milestone_date || new Date().toISOString().split("T")[0],
+          visibility: m.visibility !== undefined ? Boolean(m.visibility) : true,
+          sort_order: Number(m.sort_order) || 1,
+        },
+        actorId
+      );
+      return NextResponse.json(saved);
+    }
+
+    if (body.type === "delete_milestone") {
+      const milestoneId = body.id;
+      if (!milestoneId) {
+        return NextResponse.json({ error: "Milestone ID is required." }, { status: 400 });
+      }
+
+      await dbRepository.deleteMilestone(milestoneId, actorId);
+      return NextResponse.json({ success: true, id: milestoneId });
+    }
+
+    if (body.type === "delete_month") {
+      const monthId = body.id;
+      if (!monthId) {
+        return NextResponse.json({ error: "Month ID is required." }, { status: 400 });
+      }
+
+      await dbRepository.deleteRevenueMonth(monthId, actorId);
+      return NextResponse.json({ success: true, id: monthId });
+    }
+
+    if (body.type === "clear_months") {
+      await dbRepository.clearAllRevenueMonths(actorId);
+      return NextResponse.json({ success: true, message: "All revenue months cleared." });
+    }
+
     return NextResponse.json({ error: "Invalid request type" }, { status: 400 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });

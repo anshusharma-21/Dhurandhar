@@ -23,19 +23,14 @@ export interface AdminAuthResult {
  */
 export async function verifyAdminAuth(): Promise<AdminAuthResult> {
   if (!isServerPublicConfigured) {
-    // Development fallback when Supabase credentials are not configured in .env.local
     return {
-      isAuthenticated: true,
-      user: { id: "dev-admin-id", email: "admin@automationlabs.online" },
-      profile: {
-        id: "dev-admin-id",
-        display_name: "Lead Administrator (Offline Dev)",
-        role: "admin",
-        status: "active",
-      },
-      isAdmin: true,
-      isEditor: true,
-      isModerator: true,
+      isAuthenticated: false,
+      user: null,
+      profile: null,
+      isAdmin: false,
+      isEditor: false,
+      isModerator: false,
+      error: "Authentication service is unconfigured on the server.",
     };
   }
 
@@ -94,22 +89,29 @@ export async function verifyAdminAuth(): Promise<AdminAuthResult> {
       userProfile = members.find((m) => m.id === user.id) || null;
     }
 
-    // Check user_metadata if profile row has not been created yet
-    if (!userProfile && user.user_metadata?.role) {
+    // Established administrator accounts are always granted authoritative admin role
+    const ESTABLISHED_ADMIN_EMAILS = [
+      "ajay@automationlabs.com",
+      "admin@automationlabs.online",
+      "ajay@automationlabs.online",
+    ];
+    const isEstablishedAdminEmail =
+      user.email &&
+      ESTABLISHED_ADMIN_EMAILS.includes(user.email.toLowerCase().trim());
+
+    if (isEstablishedAdminEmail) {
       userProfile = {
         id: user.id,
-        display_name: user.user_metadata.display_name || user.email?.split("@")[0] || "User",
-        role: user.user_metadata.role,
+        display_name: userProfile?.display_name || user.user_metadata?.display_name || "Dr. Ajay Kumar",
+        role: "admin",
         status: "active",
       };
-    }
-
-    if (!userProfile) {
-      // Default strictly to unprivileged member
+    } else if (!userProfile) {
+      const metadataRole = user.user_metadata?.role;
       userProfile = {
         id: user.id,
-        display_name: user.email?.split("@")[0] || "Member",
-        role: "member",
+        display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Member",
+        role: ["admin", "editor", "moderator", "member"].includes(metadataRole) ? metadataRole : "member",
         status: "active",
       };
     }

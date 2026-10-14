@@ -65,7 +65,7 @@ export function AdminHeaderNav({ displayName, role, host = "projectdhurandhar.au
     .toUpperCase() || "AD";
 
   return (
-    <div className="relative flex items-center space-x-3" ref={popupRef}>
+    <div className="relative z-50 flex items-center space-x-3" ref={popupRef}>
       {/* Day / Night Theme Toggle */}
       <ThemeToggle />
 
@@ -85,7 +85,7 @@ export function AdminHeaderNav({ displayName, role, host = "projectdhurandhar.au
 
       {/* Profile Detail Popup Modal / Dropdown */}
       {isPopupOpen && (
-        <div className="absolute right-0 top-12 mt-2 w-80 bg-white dark:bg-[#0c1017] border border-slate-200/90 dark:border-white/15 rounded-3xl p-5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 top-12 mt-2 w-80 bg-white dark:bg-[#0c1017] border border-slate-200/90 dark:border-white/15 rounded-3xl p-5 shadow-2xl z-[100] animate-in fade-in zoom-in-95 duration-150">
           {/* Header Row */}
           <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
             <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 dark:text-amber-400 font-bold">

@@ -237,13 +237,23 @@ export default function AdminSetupPage() {
           </button>
         </form>
 
-        <div className="pt-3 border-t border-navy-800 text-center">
-          <a
-            href="/admin/login"
-            className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
-          >
-            Already initialized? Go to Admin Login →
-          </a>
+        <div className="pt-3 border-t border-navy-800 text-center space-y-2">
+          <p>
+            <a
+              href="/admin/login"
+              className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              Already initialized? Go to Admin Login →
+            </a>
+          </p>
+          <div>
+            <a
+              href="/"
+              className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors"
+            >
+              ← Back to Home Page
+            </a>
+          </div>
         </div>
       </div>
     </div>

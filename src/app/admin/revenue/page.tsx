@@ -7,6 +7,7 @@ export const revalidate = 0;
 export default async function AdminRevenuePage() {
   const settings = await dbRepository.getRevenueSettings();
   const months = await dbRepository.getRevenueMonths(true); // include private
+  const milestones = await dbRepository.getMilestones();
 
   return (
     <div className="space-y-6">
@@ -19,12 +20,16 @@ export default async function AdminRevenuePage() {
             Revenue Dashboard & Ledger Manager
           </h1>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Configure goal definitions, record monthly verified actuals, and govern public visibility.
+            Configure goal definitions, record monthly verified actuals, and govern strategic milestones.
           </p>
         </div>
       </div>
 
-      <RevenueManagerClient initialSettings={settings} initialMonths={months} />
+      <RevenueManagerClient
+        initialSettings={settings}
+        initialMonths={months}
+        initialMilestones={milestones}
+      />
     </div>
   );
 }

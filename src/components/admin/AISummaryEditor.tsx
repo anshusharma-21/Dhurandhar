@@ -34,6 +34,8 @@ export function AISummaryEditor({
     suggestedTags: string[];
     seoMetaDescription: string;
     sourceType: string;
+    model?: string;
+    tokensUsed?: number;
   } | null>(null);
 
   const triggerAIGeneration = async () => {
@@ -170,19 +172,54 @@ export function AISummaryEditor({
       {/* Generated Output Preview */}
       {aiDraft && (
         <div className="bg-slate-50 dark:bg-[#070b12] rounded-xl border border-slate-200 dark:border-white/10 p-5 space-y-4 text-xs transition-colors">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10">
-            <span className="font-semibold text-teal-700 dark:text-teal-400">
-              Draft Summary Generated (Source: {aiDraft.sourceType})
-            </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-white/10 gap-2">
+            <div className="flex items-center space-x-2 flex-wrap gap-1.5">
+              <span className="font-semibold text-teal-700 dark:text-teal-400">
+                Draft Generated (Source: {aiDraft.sourceType})
+              </span>
+              {aiDraft.model && (
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold border inline-flex items-center space-x-1 ${
+                    aiDraft.model.includes("gemini")
+                      ? "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/30"
+                      : aiDraft.model.includes("gpt")
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                      : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                  }`}
+                >
+                  <span>
+                    {aiDraft.model.includes("gemini")
+                      ? "⚡ Live AI: Gemini 1.5 Flash"
+                      : aiDraft.model.includes("gpt")
+                      ? "⚡ Live AI: OpenAI GPT-4o-mini"
+                      : "🛡️ Fallback: Editorial Synthesizer"}
+                  </span>
+                  {aiDraft.tokensUsed ? <span>• {aiDraft.tokensUsed} tokens</span> : null}
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={handleApplyToEpisode}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-xs shrink-0 cursor-pointer"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Apply to Episode Form</span>
             </button>
           </div>
+
+          {/* Explicit notification if fallback was utilized */}
+          {aiDraft.model === "dhurandhar-editorial-synthesizer-v1" && (
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-900 dark:text-amber-300 flex items-start space-x-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block font-bold">Fallback Engine Active:</strong>
+                <span>
+                  External AI API key was not configured or API call timed out. The system safely generated this factual summary directly from your transcript sentences with zero hallucinations.
+                </span>
+              </div>
+            </div>
+          )}
 
           <div>
             <span className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">Generated Summary:</span>

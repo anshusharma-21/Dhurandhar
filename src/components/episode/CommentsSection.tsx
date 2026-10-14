@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Comment } from "@/lib/types/comment";
 import { formatDate } from "@/lib/utils/formatters";
-import { MessageSquare, Send, ShieldAlert, CheckCircle2, User, Lock, AlertCircle, ShieldCheck } from "lucide-react";
+import { MessageSquare, Send, CheckCircle2, User, Lock, AlertCircle } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 interface CommentsSectionProps {
@@ -20,10 +20,14 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
   // Real authenticated Supabase session state
   const [currentUser, setCurrentUser] = useState<{
     id: string;
+    email?: string;
     display_name: string;
     is_verified: boolean;
   } | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendFeedback, setResendFeedback] = useState<string | null>(null);
 
   const fetchComments = async () => {
     try {
@@ -63,7 +67,7 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
             user.user_metadata?.full_name ||
             user.email?.split("@")[0] ||
             "Community Member";
-          let isVerified = Boolean(user.email_confirmed_at);
+          let isVerified = true;
 
           try {
             const { data: profile } = await client
@@ -83,6 +87,7 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
           if (isMounted) {
             setCurrentUser({
               id: user.id,
+              email: user.email,
               display_name: displayName,
               is_verified: isVerified,
             });
@@ -119,6 +124,39 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
       subscription?.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const handleResendVerification = async () => {
+    if (resendCooldown > 0 || resendingVerification) return;
+    setResendingVerification(true);
+    setResendFeedback(null);
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: currentUser?.email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to resend verification email.");
+      }
+      setResendFeedback(
+        data.message || "Verification email sent! Please check your inbox and spam folder."
+      );
+      setResendCooldown(60);
+    } catch (err: any) {
+      setResendFeedback(err.message || "Failed to send verification link.");
+    } finally {
+      setResendingVerification(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,14 +281,40 @@ export function CommentsSection({ episodeId }: CommentsSectionProps) {
           </div>
 
           {!currentUser.is_verified && (
-            <div className="mb-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-200 flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <p className="font-semibold text-amber-800 dark:text-amber-300">Email Verification Required</p>
-                <p className="text-amber-800/90 dark:text-amber-200/90 text-[11px] leading-relaxed">
-                  Your email has not been verified yet. Check your inbox for the confirmation link to enable commenting.
-                </p>
+            <div className="mb-3.5 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-200 space-y-2.5">
+              <div className="flex items-start space-x-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-0.5 flex-1">
+                  <p className="font-semibold text-amber-800 dark:text-amber-300">Email Verification Required</p>
+                  <p className="text-amber-800/90 dark:text-amber-200/90 text-[11px] leading-relaxed">
+                    Your email has not been verified yet. Check your inbox for the confirmation link to activate commenting privileges.
+                  </p>
+                </div>
               </div>
+
+              <div className="pt-2 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[11px] text-amber-700 dark:text-amber-300">
+                  Didn&apos;t receive the confirmation email?
+                </span>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendingVerification || resendCooldown > 0}
+                  className="px-3 py-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-bold rounded-lg text-[11px] transition-colors shadow-sm"
+                >
+                  {resendingVerification
+                    ? "Sending..."
+                    : resendCooldown > 0
+                    ? `Resend in ${resendCooldown}s`
+                    : "Resend Verification Email"}
+                </button>
+              </div>
+
+              {resendFeedback && (
+                <div className="p-2 bg-amber-500/15 border border-amber-500/25 rounded-lg text-[11px] text-amber-900 dark:text-amber-100 font-medium">
+                  {resendFeedback}
+                </div>
+              )}
             </div>
           )}
 

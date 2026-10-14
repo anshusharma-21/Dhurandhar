@@ -97,6 +97,8 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
     }
   };
 
+  const isEditMode = Boolean(initialEpisode && initialEpisode.id);
+
   const handleSave = async (targetStatus: EpisodeStatus) => {
     if (!dayNumber || isNaN(dayNumber) || dayNumber <= 0) {
       setFeedback({ type: "error", text: "A valid positive Day Number is required." });
@@ -134,10 +136,10 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
     };
 
     try {
-      const endpoint = initialEpisode
-        ? `/api/episodes/${initialEpisode.id}`
+      const endpoint = isEditMode
+        ? `/api/episodes/${initialEpisode!.id}`
         : "/api/episodes";
-      const method = initialEpisode ? "PATCH" : "POST";
+      const method = isEditMode ? "PATCH" : "POST";
 
       const res = await fetch(endpoint, {
         method,
@@ -145,9 +147,18 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      const responseText = await res.text();
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          data = { error: responseText };
+        }
+      }
+
       if (!res.ok) {
-        throw new Error(data.error || "Failed to save episode.");
+        throw new Error(data.error || `Failed to save episode (Status: ${res.status}).`);
       }
 
       setFeedback({
@@ -155,7 +166,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
         text: `Episode Day ${dayNumber} successfully saved as ${targetStatus.toUpperCase()}.`,
       });
 
-      if (!initialEpisode) {
+      if (!isEditMode) {
         setTimeout(() => router.push(`/admin/episodes`), 1200);
       }
     } catch (err: any) {
@@ -165,7 +176,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
     }
   };
 
-  const slugPath = `/episodes/${initialEpisode?.slug || `day-${String(dayNumber).padStart(3, "0")}`}`;
+  const slugPath = `/episodes/${isEditMode && initialEpisode?.slug ? initialEpisode.slug : `day-${String(dayNumber).padStart(3, "0")}`}`;
   const permalinkUrl = origin ? `${origin}${slugPath}` : slugPath;
 
   const copyPermalink = () => {
@@ -182,7 +193,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
         <div>
           <div className="flex items-center space-x-3 mb-2">
             <span className="text-xs uppercase font-black text-amber-700 dark:text-amber-400 tracking-wider">
-              {initialEpisode ? "EDIT EPISODE" : "NEW DAILY VLOG"}
+              {isEditMode ? "EDIT EPISODE" : "NEW DAILY VLOG"}
             </span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -241,7 +252,7 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
       )}
 
       {/* Permanent URL Indicator */}
-      {initialEpisode && (
+      {isEditMode && (
         <div className="bg-slate-100 dark:bg-[#0e131d] border border-slate-200 dark:border-white/10 rounded-xl p-3.5 flex items-center justify-between text-xs transition-colors">
           <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 truncate mr-2">
             <span className="font-semibold text-slate-900 dark:text-slate-200">Public URL:</span>

@@ -32,9 +32,11 @@ export async function middleware(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // If Supabase credentials are not configured, allow local dev access
+    // If Supabase credentials are not configured, reject access to protected admin pages
     if (!supabaseUrl || !supabaseKey || supabaseUrl.includes("your-project")) {
-      return response;
+      const loginUrl = new URL("/admin/login", request.url);
+      loginUrl.searchParams.set("error", "Supabase credentials are not configured.");
+      return NextResponse.redirect(loginUrl);
     }
 
     // Inspect authenticated session cookies using SSR client
@@ -73,6 +75,14 @@ export async function middleware(request: NextRequest) {
     if (error || !user) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Normal users must never be able to access /admin or nested admin pages
+    if (user.user_metadata?.role === "member") {
+      const loginUrl = new URL("/admin/login", request.url);
+      loginUrl.searchParams.set("error", "Forbidden");
+      loginUrl.searchParams.set("message", "Administrator or Editor privileges required");
       return NextResponse.redirect(loginUrl);
     }
 

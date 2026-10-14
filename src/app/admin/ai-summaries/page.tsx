@@ -62,6 +62,7 @@ export default async function AdminAISummariesPage() {
               <tr>
                 <th className="py-3 px-4 font-semibold">Job ID</th>
                 <th className="py-3 px-4 font-semibold">Episode</th>
+                <th className="py-3 px-4 font-semibold">Engine / Model</th>
                 <th className="py-3 px-4 font-semibold">Source Type</th>
                 <th className="py-3 px-4 font-semibold">Tokens</th>
                 <th className="py-3 px-4 font-semibold">Cost</th>
@@ -74,6 +75,23 @@ export default async function AdminAISummariesPage() {
                 <tr key={job.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                   <td className="py-3 px-4 font-mono text-slate-500">{job.id}</td>
                   <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{job.episode}</td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border inline-flex items-center space-x-1 ${
+                      job.model?.includes("gemini")
+                        ? "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20"
+                        : job.model?.includes("gpt")
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                        : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+                    }`}>
+                      <span>
+                        {job.model?.includes("gemini")
+                          ? "⚡ Gemini 1.5 Flash"
+                          : job.model?.includes("gpt")
+                          ? "⚡ GPT-4o-mini"
+                          : "🛡️ Fallback Synthesizer"}
+                      </span>
+                    </span>
+                  </td>
                   <td className="py-3 px-4 capitalize">{job.source_type}</td>
                   <td className="py-3 px-4 font-mono">{job.tokens}</td>
                   <td className="py-3 px-4 font-mono">{job.cost}</td>

@@ -30,47 +30,43 @@ export default function RegisterPage() {
         throw new Error("Password must be at least 8 characters long.");
       }
 
-      if (isSupabaseConfigured && supabase) {
-        const { data, error: signUpError } = await supabase.auth.signUp({
+      // Register directly via server endpoint which auto-confirms the account in Supabase
+      const regRes = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           email: email.trim(),
           password,
-          options: {
-            data: {
-              display_name: displayName.trim(),
-            },
-            emailRedirectTo:
-              typeof window !== "undefined"
-                ? `${window.location.origin}/auth/callback`
-                : undefined,
-          },
+          displayName: displayName.trim(),
+        }),
+      });
+
+      const regData = await regRes.json();
+      if (!regRes.ok) {
+        throw new Error(regData.error || "Failed to create account.");
+      }
+
+      // Automatically sign in the user now that they are confirmed
+      if (isSupabaseConfigured && supabase) {
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
         });
 
-        if (signUpError) {
-          throw signUpError;
-        }
-
-        // Supabase returns an empty identities array when email is already registered and confirmation is enabled
-        if (data?.user && !data?.session && data?.user?.identities && data?.user?.identities?.length === 0) {
-          setError("An account with this email address already exists. Please sign in instead.");
-          return;
-        }
-
-        if (data?.session) {
+        if (!signInErr) {
           setSuccess("Account created and signed in! Redirecting to episodes...");
+          router.refresh();
           setTimeout(() => {
             router.push("/episodes");
-          }, 1500);
-        } else {
-          setSuccess(
-            `Account created! A verification link has been sent to ${email}. Please check your email to verify your account and activate commenting privileges.`
-          );
+          }, 1200);
+          return;
         }
-      } else {
-        // Fallback when Supabase credentials have not been configured in .env.local
-        setSuccess(
-          "Account registered in preview mode. To test live Supabase authentication, configure your Supabase URL and Publishable Key in .env.local."
-        );
       }
+
+      setSuccess("Account created successfully! Redirecting to sign in...");
+      setTimeout(() => {
+        router.push("/sign-in");
+      }, 1200);
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
     } finally {
@@ -80,24 +76,25 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-xl font-bold text-white tracking-tight">
-          Create Community Account
+      <div className="text-center space-y-1.5">
+        <h1 className="text-2xl font-black text-white tracking-tight flex items-center justify-center space-x-1.5">
+          <span>Create Account</span>
+          <span className="text-amber-400 text-lg">✦</span>
         </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Join verified founder and operator discussions on Project Dhurandhar.
+        <p className="text-xs text-slate-400 font-medium">
+          Join verified founder discussions on Project Dhurandhar
         </p>
       </div>
 
       {error && (
-        <div className="p-3.5 bg-red-950/70 border border-red-800 rounded-xl text-xs text-red-200 flex items-start space-x-2.5">
+        <div className="p-3.5 bg-red-950/60 border border-red-500/40 rounded-xl text-xs text-red-200 flex items-start space-x-2.5 shadow-sm">
           <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
           <div className="space-y-2 flex-1">
             <span className="leading-relaxed block">{error}</span>
             {error.toLowerCase().includes("sign in") && (
               <a
                 href="/sign-in"
-                className="inline-block px-3 py-1 bg-brand-sky hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-[11px] transition-colors"
+                className="inline-block px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-[11px] transition-colors"
               >
                 Sign In to Your Account →
               </a>
@@ -107,7 +104,7 @@ export default function RegisterPage() {
       )}
 
       {success && (
-        <div className="p-3.5 bg-teal-950/70 border border-teal-800 rounded-xl text-xs text-teal-200 flex items-start space-x-2.5">
+        <div className="p-3.5 bg-teal-950/60 border border-teal-500/40 rounded-xl text-xs text-teal-200 flex items-start space-x-2.5 shadow-sm">
           <CheckCircle2 className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
           <div className="space-y-2">
             <span className="leading-relaxed block">{success}</span>
@@ -123,81 +120,89 @@ export default function RegisterPage() {
 
       {!success && (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-300">
               Public Display Name *
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="e.g. Vikram Joshi"
                 required
-                className="w-full bg-navy-950 border border-navy-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-sky focus:ring-1 focus:ring-brand-sky"
+                className="w-full bg-slate-950/60 border border-white/10 hover:border-white/20 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all"
               />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              This name is shown publicly on your comments. Your email remains strictly confidential.
+            <p className="text-[10px] text-slate-400">
+              Shown publicly on comments. Your email remains private.
             </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-300">
               Email Address *
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@domain.com"
                 required
-                className="w-full bg-navy-950 border border-navy-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-sky focus:ring-1 focus:ring-brand-sky"
+                className="w-full bg-slate-950/60 border border-white/10 hover:border-white/20 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-300">
               Password *
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 8 characters"
                 required
-                className="w-full bg-navy-950 border border-navy-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-sky focus:ring-1 focus:ring-brand-sky"
+                className="w-full bg-slate-950/60 border border-white/10 hover:border-white/20 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all"
               />
             </div>
           </div>
 
-          <div className="p-3 bg-navy-950/70 border border-navy-800 rounded-xl text-[11px] text-slate-400 flex items-start space-x-2">
-            <ShieldCheck className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+          <div className="p-3 bg-slate-950/60 border border-white/10 rounded-xl text-[11px] text-slate-400 flex items-start space-x-2">
+            <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <span>
-              By signing up, you agree to our <a href="/community-guidelines" className="text-brand-sky hover:underline">Guidelines</a> and <a href="/privacy" className="text-brand-sky hover:underline">Privacy Policy</a>.
+              By signing up, you agree to our{" "}
+              <a href="/community-guidelines" className="text-amber-400 hover:underline">
+                Guidelines
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="text-amber-400 hover:underline">
+                Privacy Policy
+              </a>
+              .
             </span>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full inline-flex items-center justify-center space-x-2 px-5 py-3 bg-gradient-to-r from-brand-sky to-cyan-500 hover:from-sky-500 hover:to-cyan-400 text-slate-950 font-bold rounded-xl text-xs shadow-subtle disabled:opacity-50 transition-all"
+            className="w-full mt-3 py-3 px-5 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/35 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 disabled:opacity-50 cursor-pointer"
           >
             <span>{loading ? "Creating account..." : "Register Account"}</span>
-            <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
+            <ArrowRight className="w-4 h-4 text-slate-950" />
           </button>
         </form>
       )}
 
-      <div className="pt-4 border-t border-navy-800 text-center text-xs text-slate-400">
+      <div className="pt-4 border-t border-white/10 text-center text-xs text-slate-400">
         Already have an account?{" "}
-        <a href="/sign-in" className="text-brand-sky font-semibold hover:underline">
+        <a href="/sign-in" className="text-amber-400 hover:text-amber-300 font-bold hover:underline">
           Sign In
         </a>
       </div>

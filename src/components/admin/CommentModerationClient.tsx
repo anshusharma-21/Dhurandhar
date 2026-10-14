@@ -13,23 +13,33 @@ export function CommentModerationClient({ initialComments }: CommentModerationCl
   const [comments, setComments] = useState<Comment[]>(initialComments);
   const [filterTab, setFilterTab] = useState<"pending" | "approved" | "spam" | "all">("pending");
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleAction = async (id: string, newStatus: CommentStatus) => {
     setLoadingId(id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
     try {
       const res = await fetch(`/api/comments/${id}/moderate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus, moderatorId: "admin-1" }),
+        body: JSON.stringify({ status: newStatus }),
       });
 
-      if (res.ok) {
-        setComments(
-          comments.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
-        );
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to update comment status (${res.status}).`);
       }
-    } catch (err) {
+
+      setComments(
+        comments.map((c) => (c.id === id ? { ...c, status: newStatus } : c))
+      );
+      setSuccessMessage(`Comment successfully marked as ${newStatus.toUpperCase()}.`);
+    } catch (err: any) {
       console.error("Moderation action failed:", err);
+      setErrorMessage(err.message || "Failed to moderate comment.");
     } finally {
       setLoadingId(null);
     }
@@ -42,6 +52,20 @@ export function CommentModerationClient({ initialComments }: CommentModerationCl
 
   return (
     <div className="space-y-6">
+      {errorMessage && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 p-4 rounded-xl text-xs flex items-center space-x-2">
+          <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="bg-teal-500/10 border border-teal-500/30 text-teal-700 dark:text-teal-400 p-4 rounded-xl text-xs flex items-center space-x-2">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
       {/* Filter Tabs */}
       <div className="flex border-b border-slate-200 dark:border-white/10 text-xs">
         {(["pending", "approved", "spam", "all"] as const).map((tab) => {

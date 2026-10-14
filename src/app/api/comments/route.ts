@@ -35,122 +35,77 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Comment text cannot be empty." }, { status: 400 });
     }
 
-    let authorId: string;
     let authorName = "Community Member";
 
-    if (isServerPublicConfigured) {
-      const supabase = createSupabaseServerClient();
-      if (!supabase) {
-        return NextResponse.json(
-          { error: "Authentication service is currently unavailable." },
-          { status: 500 }
-        );
-      }
-
-      // Securely derive authenticated user from server session / cookies
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        return NextResponse.json(
-          { error: "Authentication required. Please sign in to participate in discussion." },
-          { status: 401 }
-        );
-      }
-
-      // Check email verification from Supabase auth user
-      let isEmailVerified = Boolean(user.email_confirmed_at);
-
-      // Check public.profiles record for status and display name
-      try {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, display_name, role, status, email_verified_at")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (profile) {
-          if (profile.status === "suspended" || profile.status === "deleted") {
-            return NextResponse.json(
-              { error: "Account suspended or deactivated. Commenting is disabled." },
-              { status: 403 }
-            );
-          }
-          if (profile.email_verified_at) {
-            isEmailVerified = true;
-          }
-          if (profile.display_name) {
-            authorName = profile.display_name;
-          }
-        }
-      } catch {
-        // Fall back to user metadata if profiles query fails
-      }
-
-      if (authorName === "Community Member") {
-        authorName =
-          user.user_metadata?.display_name ||
-          user.user_metadata?.full_name ||
-          user.email?.split("@")[0] ||
-          "Community Member";
-      }
-
-      // Enforce email verification (never trust client request body)
-      if (!isEmailVerified) {
-        return NextResponse.json(
-          { error: "Email verification required. Please verify your email before posting comments." },
-          { status: 403 }
-        );
-      }
-
-      // Prevent impersonation: authorId is strictly derived from verified session user
-      authorId = user.id;
-
-      // Attempt syncing to Supabase comments table using the user's RLS session
-      try {
-        const { error: dbInsertError } = await supabase.from("comments").insert({
-          episode_id: body.episode_id,
-          author_profile_id: authorId,
-          body: body.body.trim(),
-          status: "pending",
-        });
-
-        if (dbInsertError) {
-          if (dbInsertError.code === "42501") {
-            return NextResponse.json(
-              { error: "Permission denied by database security policy." },
-              { status: 403 }
-            );
-          }
-          // Non-blocking log if schema migration not yet applied
-          console.warn("Supabase database insert note:", dbInsertError.message);
-        }
-      } catch {
-        // Non-blocking
-      }
-    } else {
-      // Offline fallback when Supabase configuration is not provided
-      if (!body.author_profile_id) {
-        return NextResponse.json(
-          { error: "Authentication required. Please sign in to participate in discussion." },
-          { status: 401 }
-        );
-      }
-
-      if (body.is_email_verified === false) {
-        return NextResponse.json(
-          { error: "Email verification required. Please verify your email before posting comments." },
-          { status: 403 }
-        );
-      }
-
-      authorId = body.author_profile_id;
-      authorName = body.author_name || "Community Member";
+    if (!isServerPublicConfigured) {
+      return NextResponse.json(
+        { error: "Authentication service is not configured. Please contact the administrator." },
+        { status: 503 }
+      );
     }
 
-    // Persist comment via repository store (handles sanitization and moderation status)
+    const supabase = createSupabaseServerClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Authentication service is currently unavailable." },
+        { status: 503 }
+      );
+    }
+
+    // Securely derive authenticated user from server session / cookies
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: "Authentication required. Please sign in to participate in discussion." },
+        { status: 401 }
+      );
+    }
+
+    // Check email verification from Supabase auth user
+    let isEmailVerified = Boolean(user.email_confirmed_at);
+
+    // Check public.profiles record for status and display name
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, display_name, role, status, email_verified_at")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile) {
+        if (profile.status === "suspended" || profile.status === "deleted") {
+          return NextResponse.json(
+            { error: "Account suspended or deactivated. Commenting is disabled." },
+            { status: 403 }
+          );
+        }
+        if (profile.email_verified_at) {
+          isEmailVerified = true;
+        }
+        if (profile.display_name) {
+          authorName = profile.display_name;
+        }
+      }
+    } catch {
+      // Fall back to user metadata if profiles query fails
+    }
+
+    if (authorName === "Community Member") {
+      authorName =
+        user.user_metadata?.display_name ||
+        user.user_metadata?.full_name ||
+        user.email?.split("@")[0] ||
+        "Community Member";
+    }
+
+    // Prevent impersonation: authorId is strictly derived from authenticated session user
+    const authorId = user.id;
+
+    // Persist comment via repository (resolves episode ID/UUID, checks first-time moderation, persists to Supabase)
     const comment = await dbRepository.createComment({
       episode_id: body.episode_id,
       author_profile_id: authorId,

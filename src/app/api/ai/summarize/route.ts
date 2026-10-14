@@ -45,8 +45,9 @@ export async function POST(req: NextRequest) {
     try {
       const adminClient = getSupabaseAdminClient();
       if (adminClient) {
+        const isUuid = body.episodeId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.episodeId);
         await adminClient.from("ai_jobs").insert({
-          episode_id: body.episodeId || null,
+          episode_id: isUuid ? body.episodeId : null,
           model: aiResult.model,
           source_types: [aiResult.sourceType],
           status: "completed",

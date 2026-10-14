@@ -55,43 +55,53 @@ Return strictly valid JSON with keys: "summary", "takeaways", "suggestedTags", "
 
   // --- GOOGLE GEMINI REAL PROVIDER ---
   if ((aiProvider === "gemini" || geminiKey) && geminiKey && !geminiKey.includes("your-server-side") && !geminiKey.includes("your-gemini")) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
-        }
-      );
+    const candidateModels = [
+      "gemini-3.5-flash-lite",
+      "gemini-3.8-flash",
+      "gemini-flash-latest",
+      "gemini-2.5-flash",
+      "gemini-1.5-flash",
+    ];
 
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const cleanJson = rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
-          const parsed = JSON.parse(cleanJson);
-          const totalTokens = data.usageMetadata?.totalTokenCount || Math.ceil(primarySourceText.length / 4);
+    for (const modelName of candidateModels) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { responseMimeType: "application/json" },
+            }),
+          }
+        );
 
-          return {
-            summary: parsed.summary,
-            takeaways: Array.isArray(parsed.takeaways) ? parsed.takeaways : [],
-            suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : ["AI & Automation"],
-            seoMetaDescription: parsed.seoMetaDescription || `Day ${dayNumber}: ${episodeTitle} - Project Dhurandhar`,
-            sourceType,
-            tokensUsed: totalTokens,
-            model: "gemini-1.5-flash",
-          };
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const cleanJson = rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+            const parsed = JSON.parse(cleanJson);
+            const totalTokens = data.usageMetadata?.totalTokenCount || Math.ceil(primarySourceText.length / 4);
+
+            return {
+              summary: parsed.summary,
+              takeaways: Array.isArray(parsed.takeaways) ? parsed.takeaways : [],
+              suggestedTags: Array.isArray(parsed.suggestedTags) ? parsed.suggestedTags : ["AI & Automation"],
+              seoMetaDescription: parsed.seoMetaDescription || `Day ${dayNumber}: ${episodeTitle} - Project Dhurandhar`,
+              sourceType,
+              tokensUsed: totalTokens,
+              model: modelName,
+            };
+          }
+        } else {
+          const errBody = await response.text();
+          console.warn(`Gemini API error with model ${modelName}:`, response.status, errBody);
         }
-      } else {
-        const errBody = await response.text();
-        console.warn("Gemini API error response:", response.status, errBody);
+      } catch (err: any) {
+        console.warn(`Gemini API call failed for ${modelName}:`, err.message);
       }
-    } catch (err: any) {
-      console.warn("Gemini API call failed, falling back to synthesis engine:", err.message);
     }
   }
 

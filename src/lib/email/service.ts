@@ -25,7 +25,7 @@ export interface EmailSendResult {
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const DEFAULT_FROM =
   process.env.EMAIL_FROM ||
-  "Project Dhurandhar <noreply@projectdhurandhar.automationlabs.online>";
+  "Project Dhurandhar <noreply@mail.automationlabs.online>";
 
 export const isResendConfigured = Boolean(
   RESEND_API_KEY &&
@@ -138,3 +138,76 @@ export async function sendCommentModerationAlert(params: {
     text: `New comment on ${params.episodeTitle} by ${params.authorName}: ${params.commentBody}. Review at https://projectdhurandhar.automationlabs.online/admin/comments`,
   });
 }
+
+/**
+ * Send email verification link to user
+ */
+export async function sendVerificationEmail(
+  to: string,
+  verificationUrl: string
+): Promise<EmailSendResult> {
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0b1120; color: #f8fafc; border-radius: 12px; border: 1px solid #1e293b;">
+      <h2 style="color: #38bdf8; margin-top: 0;">Verify Your Email Address</h2>
+      <p style="color: #94a3b8; font-size: 14px;">Welcome to Project Dhurandhar — Road to ₹30CR Revenue. Please verify your email to activate commenting and community privileges.</p>
+      
+      <div style="margin: 28px 0;">
+        <a href="${verificationUrl}" style="display: inline-block; background: #38bdf8; color: #020617; font-weight: 700; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px;">
+          Confirm Email Address →
+        </a>
+      </div>
+      
+      <p style="font-size: 12px; color: #64748b; line-height: 1.6;">
+        If you did not create an account on Project Dhurandhar, you can safely ignore this email.<br/>
+        This link will expire in 24 hours.
+      </p>
+      <p style="margin-top: 24px; font-size: 11px; color: #475569; border-top: 1px solid #1e293b; padding-top: 16px;">
+        Project Dhurandhar • mail.automationlabs.online
+      </p>
+    </div>
+  `;
+
+  return sendTransactionalEmail({
+    to,
+    subject: "Confirm your Project Dhurandhar account",
+    html,
+    text: `Confirm your Project Dhurandhar account: ${verificationUrl}`,
+  });
+}
+
+/**
+ * Send password reset link to user
+ */
+export async function sendPasswordResetEmail(
+  to: string,
+  resetUrl: string
+): Promise<EmailSendResult> {
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #0b1120; color: #f8fafc; border-radius: 12px; border: 1px solid #1e293b;">
+      <h2 style="color: #f59e0b; margin-top: 0;">Reset Your Password</h2>
+      <p style="color: #94a3b8; font-size: 14px;">We received a request to reset the password for your Project Dhurandhar account.</p>
+      
+      <div style="margin: 28px 0;">
+        <a href="${resetUrl}" style="display: inline-block; background: #f59e0b; color: #020617; font-weight: 700; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px;">
+          Set New Password →
+        </a>
+      </div>
+      
+      <p style="font-size: 12px; color: #64748b; line-height: 1.6;">
+        If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.<br/>
+        For security, this link is valid for 1 hour.
+      </p>
+      <p style="margin-top: 24px; font-size: 11px; color: #475569; border-top: 1px solid #1e293b; padding-top: 16px;">
+        Project Dhurandhar Control Center • mail.automationlabs.online
+      </p>
+    </div>
+  `;
+
+  return sendTransactionalEmail({
+    to,
+    subject: "Reset your Project Dhurandhar password",
+    html,
+    text: `Reset your Project Dhurandhar password: ${resetUrl}`,
+  });
+}
+

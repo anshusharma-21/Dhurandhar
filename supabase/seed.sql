@@ -28,7 +28,7 @@ INSERT INTO public.revenue_milestones (id, title, description, milestone_date, v
   ('b0000001-0000-0000-0000-000000000005', 'Ultimate Goal ₹30 Crore', 'Full target achievement of ₹30 Crore ARR.', '2027-03-31', true, 5)
 ON CONFLICT DO NOTHING;
 
--- 3. SEED COMPANY & FOUNDER ENTITY (SEC 10)
+
 INSERT INTO public.companies (id, name, slug, description, website_url, logo_url, visibility) VALUES
   ('c0000001-0000-0000-0000-000000000001', 'AI Automation Labs LLP', 'ai-automation-labs', 'Enterprise AI, agentic workflow automation and digital transformation lab.', 'https://automationlabs.online', '', 'public')
 ON CONFLICT (slug) DO NOTHING;
