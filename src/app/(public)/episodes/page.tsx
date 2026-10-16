@@ -4,6 +4,9 @@ import { dbRepository } from "@/lib/db/repository";
 import { EpisodeArchiveClient } from "@/components/episode/EpisodeArchiveClient";
 import { Tv } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Episode Archive | Project Dhurandhar",
   description:

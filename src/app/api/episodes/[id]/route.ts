@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { dbRepository } from "@/lib/db/repository";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
 import { verifyAdminAuth } from "@/lib/auth/admin-guard";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(
   req: NextRequest,
@@ -48,6 +51,13 @@ export async function PATCH(
     }
 
     const updated = await dbRepository.updateEpisode(params.id, body);
+    try {
+      revalidatePath("/");
+      revalidatePath("/episodes");
+      if (updated?.slug) {
+        revalidatePath(`/episodes/${updated.slug}`);
+      }
+    } catch {}
     return NextResponse.json(updated);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 });

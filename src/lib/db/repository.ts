@@ -9,7 +9,8 @@ import { sanitizePlainText } from "../security/sanitize";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 function isValidUuid(id: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  if (!id || typeof id !== "string") return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
 
 // Safe, non-cookie database client for server-level queries & operations
@@ -445,7 +446,8 @@ export const dbRepository = {
           .from("episodes")
           .select("*, episode_tags(tag:tags(*)), comments(count)", { count: "exact" })
           .eq("status", "published")
-          .lte("published_at", new Date().toISOString());
+          .lte("published_at", new Date().toISOString())
+          .eq("comments.status", "approved");
 
         if (params?.tag) {
           // Filter by tag slug using inner join
@@ -454,7 +456,8 @@ export const dbRepository = {
             .select("*, episode_tags!inner(tag:tags!inner(*)), comments(count)", { count: "exact" })
             .eq("status", "published")
             .lte("published_at", new Date().toISOString())
-            .eq("episode_tags.tag.slug", params.tag);
+            .eq("episode_tags.tag.slug", params.tag)
+            .eq("comments.status", "approved");
         }
 
         if (params?.query) {
@@ -551,6 +554,7 @@ export const dbRepository = {
           .from("episodes")
           .select("*, episode_tags(tag:tags(*)), comments(count)")
           .eq("slug", targetSlug)
+          .eq("comments.status", "approved")
           .maybeSingle();
 
         if (!error && data) {
@@ -574,6 +578,7 @@ export const dbRepository = {
           .from("episodes")
           .select("*, episode_tags(tag:tags(*)), comments(count)")
           .eq("id", id)
+          .eq("comments.status", "approved")
           .maybeSingle();
 
         if (!error && data) {
@@ -595,6 +600,7 @@ export const dbRepository = {
         const { data, error } = await db
           .from("episodes")
           .select("*, episode_tags(tag:tags(*)), comments(count)")
+          .eq("comments.status", "approved")
           .order("day_number", { ascending: false });
 
         if (!error && data && data.length > 0) {
@@ -668,10 +674,11 @@ export const dbRepository = {
 
       // Link tags in episode_tags
       if (data.tags && data.tags.length > 0 && created) {
-        for (const tag of data.tags) {
-          if (tag.id && isValidUuid(tag.id)) {
-            await db.from("episode_tags").insert({ episode_id: created.id, tag_id: tag.id });
-          }
+        const tagInserts = data.tags
+          .filter((tag) => tag.id && isValidUuid(tag.id))
+          .map((tag) => ({ episode_id: created.id, tag_id: tag.id }));
+        if (tagInserts.length > 0) {
+          await db.from("episode_tags").insert(tagInserts);
         }
       }
 
@@ -793,10 +800,11 @@ export const dbRepository = {
 
       if (data.tags) {
         await db.from("episode_tags").delete().eq("episode_id", id);
-        for (const t of data.tags) {
-          if (t.id && isValidUuid(t.id)) {
-            await db.from("episode_tags").insert({ episode_id: id, tag_id: t.id });
-          }
+        const tagInserts = data.tags
+          .filter((t) => t.id && isValidUuid(t.id))
+          .map((t) => ({ episode_id: id, tag_id: t.id }));
+        if (tagInserts.length > 0) {
+          await db.from("episode_tags").insert(tagInserts);
         }
       }
 
@@ -1440,6 +1448,17 @@ export const dbRepository = {
             label: t.label,
             slug: t.slug,
           }));
+        } else if (!error && (!data || data.length === 0)) {
+          // Auto-seed initial tags to database so foreign key constraints in episode_tags succeed
+          await db.from("tags").upsert(INITIAL_TAGS, { onConflict: "slug" });
+          const { data: seeded } = await db.from("tags").select("*").order("label", { ascending: true });
+          if (seeded && seeded.length > 0) {
+            return seeded.map((t: any) => ({
+              id: t.id,
+              label: t.label,
+              slug: t.slug,
+            }));
+          }
         }
       } catch {
         // Fallback

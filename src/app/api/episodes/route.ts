@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { dbRepository } from "@/lib/db/repository";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
 import { verifyAdminAuth } from "@/lib/auth/admin-guard";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -63,6 +66,10 @@ export async function POST(req: NextRequest) {
     }
 
     const created = await dbRepository.createEpisode(body);
+    try {
+      revalidatePath("/");
+      revalidatePath("/episodes");
+    } catch {}
     return NextResponse.json(created, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to create episode" }, { status: 400 });

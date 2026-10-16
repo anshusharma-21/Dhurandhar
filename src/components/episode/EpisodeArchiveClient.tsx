@@ -17,7 +17,7 @@ export function EpisodeArchiveClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "day_desc">("newest");
-  const [episodes, setEpisodes] = useState<Episode[]>(initialEpisodes);
+  const episodes = initialEpisodes;
   const [isPending, startTransition] = useTransition();
 
   // Client-side filtering / searching (instant responsive experience satisfying AC-08)

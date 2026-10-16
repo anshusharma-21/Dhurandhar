@@ -11,7 +11,8 @@ import { LessonsAndExecution } from "@/components/home/LessonsAndExecution";
 import { CommunityCTA } from "@/components/home/CommunityCTA";
 import { ScrollReveal } from "@/components/common/ScrollReveal";
 
-export const revalidate = 60; // ISR revalidation
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   // 1. Fetch authoritative published episodes from repository
