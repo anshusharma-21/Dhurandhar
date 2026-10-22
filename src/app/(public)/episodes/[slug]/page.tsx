@@ -138,12 +138,14 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
         )}
       </header>
 
-      {/* 3. Instagram Video Embed & Fallback Area */}
-      <InstagramEmbed
-        url={episode.instagram_url}
-        dayNumber={episode.day_number}
-        title={episode.title}
-      />
+      {/* 3. Instagram Video Stage (Centered with authentic vertical proportions) */}
+      <div className="max-w-xl mx-auto w-full">
+        <InstagramEmbed
+          url={episode.instagram_url}
+          dayNumber={episode.day_number}
+          title={episode.title}
+        />
+      </div>
 
       {/* 4. Human-Approved AI Summary */}
       <section className="bg-white dark:bg-[#0e131d] border border-slate-200/90 dark:border-white/10 rounded-2xl p-6 sm:p-8 shadow-sm dark:shadow-card space-y-4">

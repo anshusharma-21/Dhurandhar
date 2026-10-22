@@ -533,14 +533,6 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                   <span>Upload Reel</span>
                 </button>
               </div>
-
-              {/* Active processing stage banner */}
-              {autoFilling && (
-                <div className="w-full mt-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 flex items-center space-x-2 text-xs text-amber-800 dark:text-amber-200 animate-pulse">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-500" />
-                  <span>{autoFillStage}</span>
-                </div>
-              )}
             </div>
 
             {/* Spoken Transcript / Source Material */}
