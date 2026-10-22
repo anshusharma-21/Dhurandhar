@@ -5,7 +5,6 @@ import { dbRepository } from "@/lib/db/repository";
 import { formatDate } from "@/lib/utils/formatters";
 import { InstagramEmbed } from "@/components/episode/InstagramEmbed";
 import { CommentsSection } from "@/components/episode/CommentsSection";
-import { EpisodeCard } from "@/components/episode/EpisodeCard";
 import { 
   ChevronRight, 
   Calendar, 
@@ -57,11 +56,6 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
   const currentIndex = allEpisodes.findIndex((e) => e.id === episode.id);
   const nextEpisode = currentIndex > 0 ? allEpisodes[currentIndex - 1] : null;
   const prevEpisode = currentIndex < allEpisodes.length - 1 ? allEpisodes[currentIndex + 1] : null;
-
-  // Related episodes sharing tags
-  const relatedEpisodes = allEpisodes
-    .filter((e) => e.id !== episode.id && e.tags?.some((t) => episode.tags?.some((et) => et.id === t.id)))
-    .slice(0, 3);
 
   // JSON-LD structured data for SEO indexability (AC-18, AC-27)
   const jsonLd = {
@@ -247,18 +241,6 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
 
       {/* 9. Sign-in Gated Community Comments Section */}
       <CommentsSection episodeId={episode.id} />
-
-      {/* 10. Related Episodes */}
-      {relatedEpisodes.length > 0 && (
-        <section className="pt-8 border-t border-slate-200 dark:border-navy-800/80 space-y-6">
-          <h2 className="text-lg font-black text-slate-900 dark:text-white">Related Episodes</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {relatedEpisodes.map((rel) => (
-              <EpisodeCard key={rel.id} episode={rel} />
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
