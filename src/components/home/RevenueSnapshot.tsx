@@ -71,16 +71,12 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
               <span>{isLiveDb ? `Updated ${formatDate(lastUpdated)}` : "Operational Baseline"}</span>
             </div>
 
-            <div className="text-xs text-slate-500 dark:text-slate-500 flex items-center space-x-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{formatDate(lastUpdated)}</span>
-              {activeMilestonesCount > 0 && (
-                <>
-                  <span>•</span>
-                  <span>{activeMilestonesCount} Milestones</span>
-                </>
-              )}
-            </div>
+            {activeMilestonesCount > 0 && (
+              <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                <Flag className="w-3.5 h-3.5 text-amber-500" />
+                <span>{activeMilestonesCount} Milestones</span>
+              </div>
+            )}
 
             <a
               href="/revenue"
