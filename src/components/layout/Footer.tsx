@@ -15,8 +15,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8 items-start">
           {/* Column 1: Brand & Socials (4 cols) */}
           <div className="space-y-3.5 md:col-span-4">
-            <a href="/" className="inline-block group py-0.5" aria-label="Project Dhurandhar Home">
-              <DhurandharWordmark size="sm" inverted={true} />
+            <a href="/" className="inline-block group py-1" aria-label="Project Dhurandhar Home">
+              <DhurandharWordmark size="md" inverted={true} />
             </a>
             <p className="text-xs leading-relaxed text-slate-400 max-w-sm">
               Documenting Dr. Ajay Kumar and AI Automation Labs LLP executing the journey to ₹30 Crore revenue with radical transparency.
@@ -94,7 +94,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="/admin" className="text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center space-x-1 font-semibold">
+                <a href="/admin/login" className="text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center space-x-1 font-semibold">
                   <ShieldCheck className="w-3 h-3 text-amber-500" />
                   <span>Admin Console</span>
                 </a>
@@ -120,14 +120,8 @@ export function Footer() {
         </div>
 
         {/* Compact Bottom Bar */}
-        <div className="pt-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2.5">
+        <div className="pt-5 border-t border-white/10 flex items-center justify-center text-center text-xs text-slate-400">
           <p>© {new Date().getFullYear()} AI Automation Labs LLP. All rights reserved.</p>
-          <p className="text-[11px] flex items-center space-x-1.5">
-            <span className="text-slate-500">Production Host:</span>
-            <code className="text-amber-300 font-mono bg-white/[0.06] px-2 py-0.5 rounded text-[10px] border border-white/10">
-              projectdhurandhar.automationlabs.online
-            </code>
-          </p>
         </div>
       </div>
     </footer>

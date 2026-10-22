@@ -83,7 +83,7 @@ export function TheJourney() {
 
           <h2
             id="the-journey-heading"
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-[1.14]"
           >
             Why document an enterprise journey in public?
           </h2>
@@ -93,7 +93,7 @@ export function TheJourney() {
               Most business growth stories are told in retrospect, polished and sanitised with survivorship bias.
             </p>
             <p>
-              <strong className="text-slate-900 dark:text-white font-semibold">Project Dhurandhar</strong> flips the script. We are recording our path to ₹30 Crore in annual revenue as it unfolds in real time—before knowing the ultimate ending.
+              <strong className="text-slate-900 dark:text-white font-semibold">Project Dhurandhar</strong> flips the script. We are recording our path to <span className="whitespace-nowrap">₹30 Crore</span> in annual revenue as it unfolds in real time—before knowing the ultimate ending.
             </p>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 border-l-2 border-amber-500/50 pl-4 py-1 italic">
               “Building a high-margin technology enterprise in India requires relentless operational discipline, not overnight hype. This journal is our public contract of accountability.”

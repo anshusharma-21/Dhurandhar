@@ -1,18 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { FounderProfile } from "@/lib/types/people";
 import { 
   Building2, 
   ExternalLink, 
-  Edit3, 
   Target, 
   ShieldCheck, 
-  Sparkles, 
-  Save, 
-  X, 
-  Camera,
-  CheckCircle2
+  Sparkles 
 } from "lucide-react";
 
 interface AboutFounderSectionProps {
@@ -20,65 +15,7 @@ interface AboutFounderSectionProps {
 }
 
 export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps) {
-  const [profile, setProfile] = useState<FounderProfile>(initialProfile);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-
-  // Edit form state
-  const [formData, setFormData] = useState({
-    name: profile.name,
-    title: profile.title,
-    company_name: profile.company_name,
-    company_url: profile.company_url,
-    bio: profile.bio,
-    photo_url: profile.photo_url || "",
-  });
-
-  const handleOpenEdit = () => {
-    setFormData({
-      name: profile.name,
-      title: profile.title,
-      company_name: profile.company_name,
-      company_url: profile.company_url,
-      bio: profile.bio,
-      photo_url: profile.photo_url || "",
-    });
-    setErrorMessage("");
-    setSaveSuccess(false);
-    setIsEditing(true);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setErrorMessage("");
-
-    try {
-      const res = await fetch("/api/founder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to update founder details.");
-      }
-
-      setProfile(data.profile);
-      setSaveSuccess(true);
-      setTimeout(() => {
-        setIsEditing(false);
-        setSaveSuccess(false);
-      }, 800);
-    } catch (err: any) {
-      setErrorMessage(err.message || "An error occurred while saving.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const profile = initialProfile;
 
   const principles = [
     {
@@ -130,13 +67,12 @@ export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps
                     alt={profile.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Fallback if image URL fails to load
                       (e.target as HTMLElement).style.display = "none";
                     }}
                   />
                 ) : null}
 
-                {/* Initials Fallback if no photo or photo hidden */}
+                {/* Initials Fallback if no photo or photo fails to load */}
                 <div className={`w-full h-full bg-gradient-to-br from-slate-900 via-[#101726] to-[#070a10] flex flex-col items-center justify-center text-amber-400 ${profile.photo_url ? "-z-10 absolute inset-0" : ""}`}>
                   <span className="text-3xl sm:text-4xl font-black tracking-tight">
                     {profile.initials || "AK"}
@@ -145,35 +81,12 @@ export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps
                     Founder
                   </span>
                 </div>
-
-                {/* Edit Photo Indicator on hover */}
-                <button
-                  type="button"
-                  onClick={handleOpenEdit}
-                  title="Click to edit founder photo & details"
-                  className="absolute inset-0 bg-black/60 opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center text-white text-xs font-semibold transition-opacity duration-200"
-                >
-                  <Camera className="w-5 h-5 mb-1 text-amber-400" />
-                  <span>Update Photo</span>
-                </button>
               </div>
             </div>
           </div>
 
-          {/* Top Row: Edit Profile Button / Admin Trigger */}
-          <div className="flex justify-end mb-6 sm:mb-4">
-            <button
-              type="button"
-              onClick={handleOpenEdit}
-              className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 hover:border-amber-500/50 hover:text-amber-600 dark:hover:text-amber-400 transition-all shadow-sm"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-amber-500" />
-              <span>Edit Founder Story</span>
-            </button>
-          </div>
-
           {/* Details Content (Positioned with top margin to accommodate overlapping circle) */}
-          <div className="pt-8 sm:pt-4 space-y-4">
+          <div className="pt-12 sm:pt-14 space-y-4">
             <div>
               <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-400 border border-amber-500/30 text-xs font-extrabold uppercase tracking-wider mb-2">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -187,7 +100,7 @@ export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps
               </span>
             </div>
 
-            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl">
+            <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl whitespace-pre-line">
               {profile.bio}
             </p>
 
@@ -196,7 +109,7 @@ export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps
                 href={profile.company_url || "https://automationlabs.online"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition-all"
+                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 transition-all shadow-sm"
               >
                 <span>{profile.company_name} Official Website</span>
                 <ExternalLink className="w-3.5 h-3.5 ml-0.5" />
@@ -204,7 +117,7 @@ export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps
 
               <a
                 href="/revenue"
-                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-all"
+                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 transition-all shadow-sm"
               >
                 <span>View ₹30CR Financial Progress</span>
                 <span>→</span>
@@ -276,144 +189,6 @@ export function AboutFounderSection({ initialProfile }: AboutFounderSectionProps
           })}
         </div>
       </div>
-
-      {/* =========================================================================
-          3. EDIT PROFILE MODAL (FULL EDIT & UPDATE FUNCTIONALITY)
-         ========================================================================= */}
-      {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-xl bg-white dark:bg-[#0e131d] border border-slate-200 dark:border-white/10 border-t-4 border-t-amber-500 rounded-3xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-            
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10 mb-6">
-              <div className="flex items-center space-x-2">
-                <Edit3 className="w-5 h-5 text-amber-500" />
-                <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                  Edit Founder Details
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {errorMessage && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 text-red-700 dark:text-red-400 text-xs rounded-xl">
-                {errorMessage}
-              </div>
-            )}
-
-            {saveSuccess && (
-              <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs rounded-xl flex items-center space-x-2">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Profile updated successfully!</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSave} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5 uppercase tracking-wider">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5 uppercase tracking-wider">
-                  Designation / Role Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5 uppercase tracking-wider">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.company_name}
-                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5 uppercase tracking-wider">
-                  Official Website URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.company_url}
-                  onChange={(e) => setFormData({ ...formData, company_url: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5 uppercase tracking-wider">
-                  Profile Photo URL (Circle Avatar)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={formData.photo_url}
-                  onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                />
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 block">
-                  Paste any public image link. Leave empty to use default initials badge.
-                </span>
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5 uppercase tracking-wider">
-                  Executive Bio & Mission Story
-                </label>
-                <textarea
-                  rows={4}
-                  required
-                  value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131824] border border-slate-300 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 leading-relaxed"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 font-bold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="inline-flex items-center space-x-2 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase tracking-wider shadow-md hover:shadow-lg transition-all disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{isSaving ? "Saving..." : "Save Changes"}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

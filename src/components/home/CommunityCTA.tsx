@@ -15,21 +15,21 @@ export function CommunityCTA() {
             <span>THE PUBLIC INVITATION</span>
           </div>
 
-          <h2 id="closing-cta-heading" className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+          <h2 id="closing-cta-heading" className="text-3xl sm:text-5xl font-bold text-slate-900 dark:text-white tracking-tight leading-[1.14]">
             Follow the journey as it happens.
           </h2>
 
           <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
-            Watch each daily episode, critique the business decisions in the community discussion, and track our financial progress towards ₹30 crore in revenue.
+            Watch each daily episode, critique the business decisions in the community discussion, and track our financial progress towards <span className="whitespace-nowrap">₹30 crore</span> in revenue.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-4">
             <a
               href="/episodes"
-              className="inline-flex items-center space-x-2.5 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200"
+              className="inline-flex items-center space-x-2.5 px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200"
             >
               <Tv className="w-4 h-4 text-slate-950" />
-              <span>EXPLORE ALL EPISODES</span>
+              <span>Explore All Episodes</span>
               <ArrowRight className="w-4 h-4 text-slate-950 ml-0.5" />
             </a>
 
@@ -38,7 +38,7 @@ export function CommunityCTA() {
               className="inline-flex items-center space-x-2.5 px-8 py-4 bg-white/80 dark:bg-black/60 hover:bg-white dark:hover:bg-white/10 text-slate-900 dark:text-white font-bold rounded-xl text-xs sm:text-sm uppercase tracking-wider border border-slate-300/80 dark:border-white/15 transition-all duration-200"
             >
               <MessageSquare className="w-4 h-4 text-amber-500" />
-              <span>JOIN COMMUNITY DISCUSSION</span>
+              <span>Join Discussion</span>
             </a>
 
             <a

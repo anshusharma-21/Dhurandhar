@@ -56,11 +56,11 @@ export function LessonsAndExecution() {
           <ShieldCheck className="w-4 h-4 text-amber-500" />
           <span>LESSONS & OPERATING DISCIPLINE</span>
         </div>
-        <h2 id="execution-pillars-heading" className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+        <h2 id="execution-pillars-heading" className="text-2xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
           Learning Through Real Execution
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-          The core operational pillars tackled across daily episodes to scale AI Automation Labs LLP to ₹30 Crore.
+          The core operational pillars tackled across daily episodes to scale AI Automation Labs LLP to <span className="whitespace-nowrap">₹30 Crore</span>.
         </p>
       </div>
 

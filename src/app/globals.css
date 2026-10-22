@@ -1,6 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Anek+Latin:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Financial tabular figures and currency nowrap (P0 Rupee & Number Specification) */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+}
+
+.currency-nowrap {
+  white-space: nowrap;
+}
+
+.font-rupee {
+  font-family: 'Anek Latin', 'IBM Plex Mono', 'Segoe UI', system-ui, sans-serif;
+  white-space: nowrap;
+}
 
 :root {
   /* Day / Light Mode: Crisp Executive Editorial (Clean & High-Contrast) */

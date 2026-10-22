@@ -27,13 +27,13 @@ export default function AuthLayout({
 
       <div className="w-full max-w-md mx-auto pt-6 pb-2">
         <div className="relative bg-slate-900/60 dark:bg-[#0b101d]/75 backdrop-blur-2xl border border-white/10 rounded-3xl p-7 sm:p-9 shadow-2xl shadow-indigo-950/60">
-          {/* Glowing Floating Emblem */}
-          <div className="flex justify-center -mt-16 sm:-mt-18 mb-2">
+          {/* Glowing Floating Emblem (Open, No Box) */}
+          <div className="flex justify-center -mt-12 sm:-mt-14 mb-2">
             <a
               href="/"
-              className="inline-block p-3.5 rounded-2xl bg-gradient-to-b from-slate-800/90 to-slate-950/95 border border-amber-400/40 shadow-xl shadow-amber-500/10 backdrop-blur-xl hover:scale-105 transition-transform"
+              className="inline-block hover:scale-105 transition-transform"
             >
-              <DhurandharLogo size="lg" />
+              <DhurandharLogo size="md" />
             </a>
           </div>
 

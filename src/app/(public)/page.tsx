@@ -5,6 +5,7 @@ import { Hero } from "@/components/home/Hero";
 import { RevenueSnapshot } from "@/components/home/RevenueSnapshot";
 import { TheJourney } from "@/components/home/TheJourney";
 import { LatestEpisodeFeature } from "@/components/home/LatestEpisodeFeature";
+import { PostingCalendar } from "@/components/home/PostingCalendar";
 import { MilestonesTimeline } from "@/components/home/MilestonesTimeline";
 import { EpisodeFeed } from "@/components/home/EpisodeFeed";
 import { LessonsAndExecution } from "@/components/home/LessonsAndExecution";
@@ -49,6 +50,11 @@ export default async function HomePage() {
       {/* 4. Latest Featured Published Vlog (Scroll Revealed) */}
       <ScrollReveal direction="up" delay={50} duration={750}>
         <LatestEpisodeFeature episode={latestEpisode} />
+      </ScrollReveal>
+
+      {/* 4b. Month-wise 365-Day Consistency & Publishing Cadence Calendar */}
+      <ScrollReveal direction="up" delay={50} duration={750}>
+        <PostingCalendar episodes={episodes} />
       </ScrollReveal>
 
       {/* 5. Strategic Roadmap Milestones (Scroll Revealed) */}

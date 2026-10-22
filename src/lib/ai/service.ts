@@ -1,4 +1,4 @@
-import { AISummaryRequest, AISummaryResponse } from "../types/ai";
+import { AISummaryRequest, AISummaryResponse, AutoFillRequest, AutoFillResponse } from "../types/ai";
 
 /**
  * Server-Side AI Summary Service
@@ -56,11 +56,11 @@ Return strictly valid JSON with keys: "summary", "takeaways", "suggestedTags", "
   // --- GOOGLE GEMINI REAL PROVIDER ---
   if ((aiProvider === "gemini" || geminiKey) && geminiKey && !geminiKey.includes("your-server-side") && !geminiKey.includes("your-gemini")) {
     const candidateModels = [
-      "gemini-3.5-flash-lite",
-      "gemini-3.8-flash",
       "gemini-flash-latest",
+      "gemini-3.5-flash",
+      "gemini-3.8-flash",
+      "gemini-3.5-flash-lite",
       "gemini-2.5-flash",
-      "gemini-1.5-flash",
     ];
 
     for (const modelName of candidateModels) {
@@ -192,3 +192,151 @@ function synthesizeFactualSummary(
     model: "dhurandhar-editorial-synthesizer-v1",
   };
 }
+
+/**
+ * 1-Click Multimodal AI Episode Generator
+ * Transcribes audio/video stream or extracts from caption/link,
+ * and produces Episode Title, Transcript, Caption, Summary, Takeaways, and Taxonomy Tags.
+ */
+export async function generateAutoFillEpisode(
+  req: AutoFillRequest
+): Promise<AutoFillResponse> {
+  const geminiKey =
+    process.env.GEMINI_API_KEY ||
+    (process.env.AI_PROVIDER === "gemini" ? process.env.AI_API_KEY : process.env.AI_API_KEY);
+
+  const tagOptions =
+    req.availableTags && req.availableTags.length > 0
+      ? req.availableTags.map((t) => t.label).join(", ")
+      : "Vision & Strategy, Sales & Marketing, Product & Technology, AI & Automation, Operations & Delivery, Hiring & Team, Finance & Revenue, Customers, Partnerships, Setbacks & Lessons, Milestones, Founder Reflections";
+
+  const hasMedia = Boolean(req.mediaBase64);
+  const sourceType = hasMedia ? (req.mimeType?.includes("video") ? "video" : "audio") : (req.instagramUrl ? "link" : "text");
+
+  const prompt = `You are the executive editorial assistant for Dr. Ajay Kumar and AI Automation Labs LLP's "Project Dhurandhar: Road to ₹30CR Revenue".
+Episode: Day ${req.dayNumber}${req.episodeTitle ? ` - ${req.episodeTitle}` : ""}
+${req.captionText ? `Provided Context/Caption: """${req.captionText}"""` : ""}
+${req.transcriptText ? `Provided Transcript: """${req.transcriptText}"""` : ""}
+${req.contextNotes ? `Internal Context Notes: """${req.contextNotes}"""` : ""}
+
+YOUR TASKS:
+${hasMedia ? "1. Carefully listen to the attached audio/video recording. Transcribe what is spoken accurately in Hindi, Hinglish, or English as spoken (provide the full spoken transcript, do not summarize in the transcript field)." : "1. Review all supplied caption, transcript, and context notes."}
+2. Formulate a catchy, executive-grade Episode Title (e.g., "Building the Core Delivery Engine" or "Day ${req.dayNumber}: Scaling AI Operations").
+3. Formulate an engaging Instagram caption suitable for social media with key highlights and relevant hashtags (#ProjectDhurandhar #AutomationLabs).
+4. Produce a neutral, factual 80-150 word Executive Summary in third-person editorial voice.
+5. Produce 3 to 5 clear, bulleted key strategic takeaways or business decisions.
+6. Select 2 to 4 most relevant tags strictly from this list:
+   ${tagOptions}
+7. Provide a 140-160 character natural SEO meta description.
+
+Return strictly valid JSON with keys:
+"title", "transcript", "caption", "summary", "takeaways", "suggestedTags", "seoMetaDescription".`;
+
+  const parts: any[] = [];
+  if (hasMedia && req.mediaBase64) {
+    parts.push({
+      inlineData: {
+        mimeType: req.mimeType || "audio/mp3",
+        data: req.mediaBase64,
+      },
+    });
+  }
+  parts.push({ text: prompt });
+
+  if (geminiKey && !geminiKey.includes("your-server-side") && !geminiKey.includes("your-gemini")) {
+    const candidateModels = [
+      "gemini-flash-latest",
+      "gemini-3.5-flash",
+      "gemini-3.8-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-2.5-flash",
+    ];
+
+    for (const modelName of candidateModels) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts }],
+              generationConfig: { responseMimeType: "application/json" },
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (rawText) {
+            const cleanJson = rawText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+            const parsed = JSON.parse(cleanJson);
+
+            const suggestedTags = Array.isArray(parsed.suggestedTags)
+              ? parsed.suggestedTags
+              : ["AI & Automation", "Operations & Delivery"];
+
+            const suggestedTagIds = (req.availableTags || [])
+              .filter((tag) =>
+                suggestedTags.some(
+                  (st: string) =>
+                    st.toLowerCase().trim() === tag.label.toLowerCase().trim() ||
+                    tag.label.toLowerCase().includes(st.toLowerCase()) ||
+                    st.toLowerCase().includes(tag.label.toLowerCase())
+                )
+              )
+              .map((t) => t.id);
+
+            // Clean title if prefixed with Day X:
+            let title = parsed.title || `Day ${req.dayNumber}: Progress Update`;
+            if (title.toLowerCase().startsWith(`day ${req.dayNumber}:`)) {
+              title = title.slice(`day ${req.dayNumber}:`.length).trim();
+            }
+
+            return {
+              title,
+              transcript: parsed.transcript || req.transcriptText || "",
+              caption: parsed.caption || req.captionText || "",
+              summary: parsed.summary || "",
+              takeaways: Array.isArray(parsed.takeaways) ? parsed.takeaways : [],
+              suggestedTags,
+              suggestedTagIds,
+              seoMetaDescription: parsed.seoMetaDescription || `Day ${req.dayNumber}: ${title} - Project Dhurandhar`,
+              sourceType,
+              model: modelName,
+              tokensUsed: data.usageMetadata?.totalTokenCount || 500,
+            };
+          }
+        } else {
+          const errBody = await response.text();
+          console.warn(`Gemini auto-fill error with model ${modelName}:`, response.status, errBody);
+        }
+      } catch (err: any) {
+        console.warn(`Gemini auto-fill failed for ${modelName}:`, err.message);
+      }
+    }
+  }
+
+  // Fallback if no API key or external service failed
+  const fallbackText = req.captionText || req.transcriptText || req.contextNotes || "Day " + req.dayNumber + " progress";
+  const defaultTagIds = (req.availableTags || []).slice(0, 2).map((t) => t.id);
+
+  return {
+    title: req.episodeTitle || `Building Autonomous Scale`,
+    transcript: req.transcriptText || (hasMedia ? "Spoken audio recorded for Day " + req.dayNumber + "." : ""),
+    caption: req.captionText || `Day ${req.dayNumber} of our 30-day journey building scalable revenue systems. #ProjectDhurandhar`,
+    summary: `In Day ${req.dayNumber}, Dr. Ajay Kumar chronicles team milestones and key decisions toward scaling AI Automation Labs. ${fallbackText.slice(0, 200)}`,
+    takeaways: [
+      `Milestones achieved for Day ${req.dayNumber}.`,
+      "Focus maintained on high-impact customer deliverables.",
+      "Clear alignment across engineering and operations.",
+    ],
+    suggestedTags: ["AI & Automation", "Operations & Delivery"],
+    suggestedTagIds: defaultTagIds,
+    seoMetaDescription: `Day ${req.dayNumber}: Follow Dr. Ajay Kumar's journey building AI Automation Labs.`,
+    sourceType,
+    model: "dhurandhar-synthesizer-fallback",
+  };
+}
+

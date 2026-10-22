@@ -15,11 +15,13 @@ export function formatINR(amount: number, compact: boolean = false): string {
   if (compact) {
     if (abs >= 10000000) {
       const cr = abs / 10000000;
-      return `${sign}₹${cr.toFixed(2)} Cr`;
+      const formattedCr = cr % 1 === 0 ? cr.toString() : cr.toFixed(2).replace(/\.?0+$/, "");
+      return `${sign}₹${formattedCr} Cr`;
     }
     if (abs >= 100000) {
       const lakh = abs / 100000;
-      return `${sign}₹${lakh.toFixed(2)} L`;
+      const formattedLakh = lakh % 1 === 0 ? lakh.toString() : lakh.toFixed(2).replace(/\.?0+$/, "");
+      return `${sign}₹${formattedLakh} L`;
     }
   }
 

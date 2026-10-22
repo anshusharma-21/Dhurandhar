@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Episode, Tag, EpisodeStatus } from "@/lib/types/episode";
+import { Episode, Tag, EpisodeStatus, AISummaryStatus } from "@/lib/types/episode";
 import { AISummaryEditor } from "./AISummaryEditor";
 import { InstagramEmbed } from "../episode/InstagramEmbed";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
@@ -17,7 +17,12 @@ import {
   AlertCircle, 
   Copy, 
   Eye, 
-  Calendar 
+  Calendar,
+  Sparkles,
+  Upload,
+  Loader2,
+  Wand2,
+  FileAudio
 } from "lucide-react";
 
 interface EpisodeFormProps {
@@ -37,6 +42,8 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
   const [transcriptText, setTranscriptText] = useState<string>(initialEpisode?.transcript_text || "");
   const [summary, setSummary] = useState<string>(initialEpisode?.summary || "");
   const [takeaways, setTakeaways] = useState<string[]>(initialEpisode?.takeaways || []);
+  const [summaryStatus, setSummaryStatus] = useState<AISummaryStatus>(initialEpisode?.summary_status || "not_generated");
+  const [summarySource, setSummarySource] = useState<string>(initialEpisode?.summary_source || "none");
   const [takeawayInput, setTakeawayInput] = useState<string>("");
   const [status, setStatus] = useState<EpisodeStatus>(initialEpisode?.status || "draft");
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
@@ -51,6 +58,11 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [origin, setOrigin] = useState<string>("");
+
+  // AI Auto-Fill states
+  const [autoFilling, setAutoFilling] = useState<boolean>(false);
+  const [autoFillStage, setAutoFillStage] = useState<string>("");
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -73,9 +85,111 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
     }
   };
 
+  const handleAutoGenerate = async (mode: "link" | "file" | "text", fileToUpload?: File) => {
+    if (mode === "link" && !instagramUrl.trim()) {
+      setFeedback({ type: "error", text: "Please enter a valid Instagram Reel URL first." });
+      return;
+    }
+
+    const file = fileToUpload;
+    if (mode === "file" && !file) {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    setAutoFilling(true);
+    setAutoFillStage(
+      file
+        ? `Listening to "${file.name}" & extracting spoken dialogue with Gemini AI...`
+        : mode === "link"
+        ? "Extracting Reel data & generating complete episode details with Gemini AI..."
+        : "Analyzing provided text & synthesizing episode content with Gemini AI..."
+    );
+    setFeedback(null);
+
+    try {
+      let res: Response;
+      if (file) {
+        const formData = new FormData();
+        formData.append("mediaFile", file);
+        formData.append("dayNumber", String(dayNumber));
+        if (title) formData.append("episodeTitle", title);
+        if (instagramUrl) formData.append("instagramUrl", instagramUrl.trim());
+        if (caption) formData.append("captionText", caption);
+        if (transcriptText) formData.append("transcriptText", transcriptText);
+        if (contextNotes) formData.append("contextNotes", contextNotes);
+        formData.append("availableTags", JSON.stringify(availableTags));
+
+        res = await fetch("/api/ai/auto-fill", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        res = await fetch("/api/ai/auto-fill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            dayNumber,
+            episodeTitle: title || undefined,
+            instagramUrl: mode === "link" ? instagramUrl.trim() : undefined,
+            captionText: caption || undefined,
+            transcriptText: transcriptText || undefined,
+            contextNotes: contextNotes || undefined,
+            availableTags,
+          }),
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to auto-generate episode content.");
+      }
+
+      // Auto-populate all form fields
+      if (data.title) {
+        setTitle(data.title);
+      }
+      if (data.transcript) {
+        setTranscriptText(data.transcript);
+      }
+      if (data.caption) {
+        setCaption(data.caption);
+      }
+      if (data.summary) {
+        setSummary(data.summary);
+        setSummaryStatus("approved");
+        setSummarySource(data.sourceType || "transcription");
+      }
+      if (Array.isArray(data.takeaways) && data.takeaways.length > 0) {
+        setTakeaways(data.takeaways);
+      }
+      if (Array.isArray(data.suggestedTagIds) && data.suggestedTagIds.length > 0) {
+        setSelectedTagIds(data.suggestedTagIds);
+      }
+
+      setFeedback({
+        type: "success",
+        text: `✨ Successfully generated Title, Transcript, Caption, Summary, Key Takeaways & Topic Tags (via ${data.model})! Review any fields below before publishing.`,
+      });
+    } catch (err: any) {
+      setFeedback({
+        type: "error",
+        text: err.message || "Failed to generate content. You can upload the Reel audio/video file directly below as a backup.",
+      });
+    } finally {
+      setAutoFilling(false);
+      setAutoFillStage("");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   const handleApplyAISummary = (genSummary: string, genTakeaways: string[]) => {
     setSummary(genSummary);
     setTakeaways(genTakeaways);
+    setSummaryStatus("approved");
+    setSummarySource("transcription");
     setFeedback({ type: "success", text: "AI Summary & takeaways applied to form." });
   };
 
@@ -121,6 +235,16 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
     setSaving(true);
     setFeedback(null);
 
+    const finalSummaryStatus: AISummaryStatus =
+      summary.trim().length >= 25
+        ? (summaryStatus === "not_generated" ? "approved" : summaryStatus)
+        : "not_generated";
+
+    const finalSummarySource =
+      summarySource !== "none"
+        ? summarySource
+        : (summary.trim().length >= 25 ? "transcription" : "none");
+
     const payload = {
       day_number: Number(dayNumber),
       title: title.trim(),
@@ -132,6 +256,8 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
       summary: summary.trim(),
       takeaways,
       status: targetStatus,
+      summary_status: finalSummaryStatus,
+      summary_source: finalSummarySource,
       tags: availableTags.filter((t) => selectedTagIds.includes(t.id)),
     };
 
@@ -354,6 +480,66 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
                   <AlertCircle className="w-3.5 h-3.5" />
                   <span>{urlValidation.message}</span>
                 </p>
+              )}
+            </div>
+
+            {/* ⚡ Sleek AI Auto-Fill Action Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-gradient-to-r from-amber-500/5 via-slate-50 to-transparent dark:from-amber-500/10 dark:via-[#0e131d] dark:to-transparent border-l-2 border-l-amber-500 pl-3.5 rounded-r-xl">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="video/mp4,video/*,audio/mp3,audio/wav,audio/m4a,audio/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleAutoGenerate("file", file);
+                  }
+                }}
+              />
+
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  1-Click AI Auto-Fill
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={autoFilling || !instagramUrl || !urlValidation.isValid}
+                  onClick={() => handleAutoGenerate("link")}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold rounded-lg text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                  title={!instagramUrl ? "Paste an Instagram Reel URL first" : "Fetch and auto-fill from Reel URL"}
+                >
+                  {autoFilling ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Wand2 className="w-3.5 h-3.5" />
+                  )}
+                  <span>{autoFilling ? "Processing..." : "Auto-Fill From Link"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={autoFilling}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-white/10 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  title="Upload Reel directly"
+                >
+                  <Upload className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Upload Reel</span>
+                </button>
+              </div>
+
+              {/* Active processing stage banner */}
+              {autoFilling && (
+                <div className="w-full mt-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 flex items-center space-x-2 text-xs text-amber-800 dark:text-amber-200 animate-pulse">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0 text-amber-500" />
+                  <span>{autoFillStage}</span>
+                </div>
               )}
             </div>
 

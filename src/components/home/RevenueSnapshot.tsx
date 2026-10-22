@@ -68,7 +68,7 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${isLiveDb ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
-              <span>{isLiveDb ? "Live Supabase Sync" : "Operational Baseline Data"}</span>
+              <span>{isLiveDb ? `Updated ${formatDate(lastUpdated)}` : "Operational Baseline"}</span>
             </div>
 
             <div className="text-xs text-slate-500 dark:text-slate-500 flex items-center space-x-1.5">
@@ -104,10 +104,10 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 uppercase tracking-[0.16em] block mb-2 transition-colors">
               Mission Target
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-amber-950 dark:group-hover:text-white transition-colors">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-amber-950 dark:group-hover:text-white transition-colors whitespace-nowrap font-tabular">
               {formatINR(targetAmount, true)}
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block font-mono transition-colors">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block font-mono transition-colors whitespace-nowrap">
               ₹30,00,00,000 INR
             </span>
           </div>
@@ -121,10 +121,10 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
             <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-[0.16em] block mb-2">
               Revenue Achieved
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-700 dark:text-amber-300 group-hover:text-amber-600 dark:group-hover:text-amber-200 tracking-tight transition-colors">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-amber-700 dark:text-amber-300 group-hover:text-amber-600 dark:group-hover:text-amber-200 tracking-tight transition-colors whitespace-nowrap font-tabular">
               {formatINR(totalActual, true)}
             </div>
-            <span className="text-[11px] text-amber-600/90 dark:text-amber-400/80 mt-2 block font-mono">
+            <span className="text-[11px] text-amber-600/90 dark:text-amber-400/80 mt-2 block font-mono whitespace-nowrap">
               {formatINR(totalActual, false)}
             </span>
           </div>
@@ -138,10 +138,10 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 uppercase tracking-[0.16em] block mb-2 transition-colors">
               Remaining Gap
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-amber-950 dark:group-hover:text-white transition-colors">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-amber-950 dark:group-hover:text-white transition-colors whitespace-nowrap font-tabular">
               {isTargetExceeded ? "Completed" : formatINR(remainingAmount, true)}
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block font-mono transition-colors">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block font-mono transition-colors whitespace-nowrap">
               {isTargetExceeded ? "Target Goal Reached" : `${formatINR(remainingAmount, false)} to go`}
             </span>
           </div>
@@ -155,11 +155,11 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 uppercase tracking-[0.16em] block mb-2 transition-colors">
               Target Completed
             </span>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors font-tabular">
               {percentage}%
             </div>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block transition-colors">
-              {(100 - percentage).toFixed(1)}% of ₹30Cr remaining
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-amber-600/80 dark:group-hover:text-amber-400/80 mt-2 block transition-colors whitespace-nowrap">
+              {(100 - percentage).toFixed(1)}% of ₹30 Cr remaining
             </span>
           </div>
         </div>
@@ -169,14 +169,14 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400 gap-2">
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-600" />
-              <span>₹0 (Day 1 Inception)</span>
+              <span className="whitespace-nowrap">₹0 (Day 1 Inception)</span>
             </div>
-            <div className="text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider text-xs">
-              Current Trajectory: {percentage}% of ₹30 Crore Realised
+            <div className="text-amber-700 dark:text-amber-400 font-bold uppercase tracking-wider text-xs whitespace-nowrap">
+              Current Trajectory: {percentage}% of ₹30 Cr Realised
             </div>
             <div className="flex items-center space-x-2 text-right">
-              <span>Goal: ₹30.00 Cr</span>
-              <Flag className="w-3.5 h-3.5 text-amber-500" />
+              <span className="whitespace-nowrap font-semibold">Goal: ₹30 Cr</span>
+              <Flag className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             </div>
           </div>
 
@@ -185,8 +185,8 @@ export function RevenueSnapshot({ metrics, settings, milestones = [] }: RevenueS
             {/* Track Background */}
             <div className="w-full h-4 rounded-full bg-slate-200 dark:bg-[#171e2c] border border-slate-300 dark:border-white/10 overflow-hidden p-0.5 shadow-inner">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all duration-1000"
-                style={{ width: `${Math.min(100, Math.max(3, percentage))}%` }}
+                className={`h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-300 ${percentage > 0 ? "shadow-[0_0_20px_rgba(245,158,11,0.5)]" : ""} transition-all duration-1000`}
+                style={{ width: `${Math.min(100, percentage)}%` }}
                 role="progressbar"
                 aria-valuenow={percentage}
                 aria-valuemin={0}

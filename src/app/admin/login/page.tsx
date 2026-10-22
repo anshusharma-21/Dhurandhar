@@ -95,11 +95,9 @@ function AdminLoginForm() {
       {/* Central Glassmorphic Portal Card */}
       <div className="relative bg-slate-900/60 dark:bg-[#0b101d]/75 backdrop-blur-2xl border border-white/10 rounded-3xl p-7 sm:p-9 shadow-2xl shadow-indigo-950/60 space-y-6">
         
-        {/* Glowing Floating Emblem */}
-        <div className="flex justify-center -mt-16 sm:-mt-18 mb-2">
-          <div className="p-3.5 rounded-2xl bg-gradient-to-b from-slate-800/90 to-slate-950/95 border border-amber-400/40 shadow-xl shadow-amber-500/10 backdrop-blur-xl">
-            <DhurandharLogo size="lg" />
-          </div>
+        {/* Glowing Floating Emblem (Open, Standalone, No Box) */}
+        <div className="flex justify-center -mt-12 sm:-mt-14 mb-2">
+          <DhurandharLogo size="md" />
         </div>
 
         {/* Minimalist Portal Title */}

@@ -75,24 +75,24 @@ export function Hero() {
             <span>PROJECT DHURANDHAR • PUBLIC ACCOUNTABILITY</span>
           </div>
 
-          {/* Master Headline (Exact Requirement from Section 3.3) */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-black tracking-tight text-slate-900 dark:text-white leading-[1.12]">
-            Building towards ₹30 crore.{" "}
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 dark:from-amber-200 dark:via-amber-400 dark:to-amber-500">
+          {/* Master Headline */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold tracking-tight text-slate-900 dark:text-white leading-[1.14]">
+            Building towards <span className="whitespace-nowrap">₹30 crore</span>.{" "}
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 dark:from-amber-200 dark:via-amber-400 dark:to-amber-500 font-extrabold">
               One day at a time.
             </span>
           </h1>
 
-          {/* Supporting Copy (Exact Requirement from Section 3.3) */}
+          {/* Supporting Copy */}
           <p className="text-sm sm:text-base md:text-lg text-slate-700 dark:text-slate-300 leading-relaxed font-normal max-w-2xl">
             Follow Dr. Ajay Kumar and the AI Automation Labs team as we build, learn, solve problems, and grow. Daily vlogs document the decisions, wins, setbacks, and lessons behind the journey.
           </p>
 
-          {/* Action CTAs (Exact Requirement from Section 3.3) */}
+          {/* Action CTAs */}
           <div className="flex flex-wrap items-center gap-3.5 pt-1">
             <a
               href="/episodes"
-              className="inline-flex items-center space-x-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200"
+              className="inline-flex items-center space-x-2.5 px-6 sm:px-7 py-3 sm:py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-md hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200"
             >
               <Tv className="w-4 h-4 text-slate-950" />
               <span>Watch the Latest Day</span>

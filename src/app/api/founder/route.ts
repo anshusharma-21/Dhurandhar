@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       name: sanitizePlainText(name).slice(0, 100),
       title: title ? sanitizePlainText(title).slice(0, 150) : undefined,
       bio: bio ? sanitizePlainText(bio).slice(0, 2000) : undefined,
-      photo_url: photo_url ? photo_url.trim() : undefined,
+      photo_url: typeof photo_url === "string" ? photo_url.trim() : photo_url || "",
       company_name: company_name ? sanitizePlainText(company_name).slice(0, 100) : undefined,
       company_url: company_url ? company_url.trim() : undefined,
     });
