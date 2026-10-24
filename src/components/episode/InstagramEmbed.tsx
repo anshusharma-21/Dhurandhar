@@ -1,26 +1,69 @@
 "use client";
 
-import React, { useState } from "react";
-import { ExternalLink, Play, Video, RefreshCw } from "lucide-react";
-import { InstagramIcon as Instagram } from "@/components/icons/InstagramIcon";
+import React, { useState, useRef } from "react";
+import { ExternalLink, Play, RotateCcw } from "lucide-react";
+import { InstagramIcon } from "@/components/icons/InstagramIcon";
 import { getInstagramEmbedUrl } from "@/lib/utils/instagram";
 
 interface InstagramEmbedProps {
   url: string;
+  videoUrl?: string;
   dayNumber: number;
   title: string;
   className?: string;
 }
 
-export function InstagramEmbed({ url, dayNumber, title, className = "" }: InstagramEmbedProps) {
-  const [showIframe, setShowIframe] = useState(false);
+export function InstagramEmbed({
+  url,
+  videoUrl,
+  dayNumber,
+  title,
+  className = "",
+}: InstagramEmbedProps) {
   const [thumbnailError, setThumbnailError] = useState(false);
+  const [useNativeVideo, setUseNativeVideo] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasEnded, setHasEnded] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Resolved direct video from Supabase Storage or prop
+  const defaultStorageVideo =
+    dayNumber > 0
+      ? `https://cswqqbyvrqyclcnikiuu.supabase.co/storage/v1/object/public/media/videos/day-${dayNumber}.mp4`
+      : null;
+  const resolvedVideo = videoUrl || defaultStorageVideo;
+
   const embedUrl = getInstagramEmbedUrl(url);
   const thumbnailUrl = url ? `/api/instagram/thumbnail?url=${encodeURIComponent(url)}` : "";
 
-  const handleOpenReel = () => {
-    if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+  const handlePlay = () => {
+    if (videoRef.current) {
+      videoRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setHasEnded(false);
+        })
+        .catch((err) => {
+          console.warn("Autoplay blocked or playback error:", err);
+          setIsPlaying(true);
+        });
+    }
+  };
+
+  const handleReplay = () => {
+    if (useNativeVideo && resolvedVideo && videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setHasEnded(false);
+        })
+        .catch(() => {});
+    } else {
+      setIframeKey((prev) => prev + 1);
     }
   };
 
@@ -28,14 +71,14 @@ export function InstagramEmbed({ url, dayNumber, title, className = "" }: Instag
     <div
       className={`w-full flex flex-col justify-between bg-slate-900/95 dark:bg-[#0c1017] border border-slate-200/90 dark:border-white/10 hover:border-amber-500/40 rounded-2xl overflow-hidden shadow-xl dark:shadow-[0_15px_40px_rgba(0,0,0,0.6)] transition-all duration-300 relative group ${className}`}
     >
-      {/* Top Gold Sheen Line */}
+      {/* Top Gold Sheen Accent */}
       <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-80 z-20" />
 
       {/* Embed Top Bar */}
       <div className="px-4 sm:px-5 py-3 bg-slate-100/90 dark:bg-[#080b11] border-b border-slate-200/90 dark:border-white/10 flex items-center justify-between text-xs relative z-10 shrink-0">
         <div className="flex items-center space-x-2">
           <div className="w-6 h-6 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-            <Instagram className="w-3.5 h-3.5 text-pink-500" />
+            <InstagramIcon className="w-3.5 h-3.5 text-pink-500" />
           </div>
           <span className="font-bold text-slate-900 dark:text-white">Daily Vlog</span>
           <span className="text-slate-400 dark:text-slate-600">•</span>
@@ -44,126 +87,176 @@ export function InstagramEmbed({ url, dayNumber, title, className = "" }: Instag
           </span>
         </div>
 
-        <div className="flex items-center space-x-3">
+        {url && (
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+            title="Open original Reel on Instagram"
           >
-            <span>Watch on Instagram</span>
+            <span>Instagram Post</span>
             <ExternalLink className="w-3 h-3" />
           </a>
-        </div>
+        )}
       </div>
 
-      {/* Video Player Stage */}
-      <div className="relative flex-1 w-full bg-slate-950 overflow-hidden flex flex-col justify-between min-h-[460px] sm:min-h-[520px]">
-        {showIframe && embedUrl ? (
-          /* Live Interactive Iframe View (Properly Sized in 9:16 vertical phone frame, NOT cut in half) */
-          <div className="w-full flex-1 flex flex-col items-center justify-center p-3 sm:p-5 bg-[#080b11]">
-            <div className="w-full max-w-[360px] sm:max-w-[390px] rounded-2xl overflow-hidden border border-amber-500/25 bg-[#0a0e17] shadow-2xl">
-              <iframe
-                src={embedUrl}
-                className="w-full min-h-[640px] sm:min-h-[700px] bg-[#0a0e17]"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                title={`Day ${dayNumber}: ${title}`}
-              />
-            </div>
-            <div className="w-full max-w-[390px] mt-3 flex items-center justify-between text-[11px] text-slate-400 px-1">
-              <span>Instagram Video Player</span>
-              <button
-                type="button"
-                onClick={() => setShowIframe(false)}
-                className="text-amber-400 hover:underline flex items-center space-x-1 font-semibold cursor-pointer"
-              >
-                <RefreshCw className="w-3 h-3" />
-                <span>Return to Video Poster</span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Clean Cinematic Video Poster Stage (NO "View profile", NO "View more on Instagram") */
-          <div className="relative flex-1 w-full flex flex-col justify-between overflow-hidden">
-            {/* Ambient Blurred Background (adds depth & prevents ugly black borders) */}
-            {thumbnailUrl && !thumbnailError ? (
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <img
-                  src={thumbnailUrl}
-                  alt=""
-                  className="w-full h-full object-cover filter blur-2xl scale-125 opacity-35 brightness-75"
-                />
-              </div>
-            ) : null}
-
-            {/* Main Stage: Full Vertical 9:16 Proportion Frame (Fully visible, not cropped) */}
-            <div className="relative flex-1 w-full flex items-center justify-center p-4 sm:p-6">
-              <div
-                onClick={handleOpenReel}
-                className="relative w-full max-w-[300px] sm:max-w-[340px] aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group-hover:border-amber-500/40 transition-all duration-500 cursor-pointer"
-              >
-                {thumbnailUrl && !thumbnailError ? (
-                  <img
-                    src={thumbnailUrl}
-                    alt={`Day ${dayNumber} Video`}
-                    onError={() => setThumbnailError(true)}
-                    className="w-full h-full object-cover object-center filter brightness-[0.92] contrast-[1.05] group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
-                ) : (
-                  <img
-                    src="/images/hero-cinematic.jpg"
-                    alt="Project Dhurandhar Briefing"
-                    className="w-full h-full object-cover object-center filter brightness-[0.8] contrast-[1.1] group-hover:scale-105 transition-transform duration-700 ease-out"
-                  />
-                )}
-
-                {/* Ambient Center Glow */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/45 pointer-events-none" />
-
-                {/* Floating Play Button */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-                  <div className="group/btn relative flex flex-col items-center justify-center transition-transform duration-300 hover:scale-110 active:scale-95">
-                    <span className="absolute -inset-4 rounded-full bg-amber-500/30 blur-xl animate-pulse pointer-events-none" />
-                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 text-slate-950 flex items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.7)] group-hover/btn:shadow-[0_0_55px_rgba(245,158,11,1)] transition-all">
-                      <Play className="w-7 h-7 sm:w-9 sm:h-9 fill-slate-950 ml-1 text-slate-950" />
-                    </div>
-                    <span className="mt-3 text-[11px] sm:text-xs font-black uppercase tracking-wider text-white drop-shadow-md">
-                      Play Day {dayNumber} Reel
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Actions Bar */}
-            <div className="relative z-10 p-3.5 sm:p-4 bg-slate-900/90 dark:bg-[#080b11] border-t border-slate-200/90 dark:border-white/10 flex items-center justify-between gap-2.5">
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md hover:shadow-amber-500/30 transition-all text-center"
-              >
-                <Instagram className="w-3.5 h-3.5 text-slate-950" />
-                <span>Watch on Instagram</span>
-                <ExternalLink className="w-3 h-3 ml-0.5" />
-              </a>
-
-              {embedUrl && (
-                <button
-                  type="button"
-                  onClick={() => setShowIframe(true)}
-                  className="inline-flex items-center justify-center space-x-1 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer"
-                  title="View Embedded Player"
-                >
-                  <Video className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden sm:inline">Embed</span>
-                </button>
-              )}
-            </div>
+      {/* Video Player Stage: Full height, proper 9:16 proportions, and zero white bars */}
+      <div className="relative flex-1 w-full min-h-[480px] sm:min-h-[540px] max-h-[640px] bg-black overflow-hidden flex items-center justify-center">
+        {/* Ambient Blurred Backdrop Glow */}
+        {thumbnailUrl && !thumbnailError && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30 filter blur-3xl scale-125">
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={() => setThumbnailError(true)}
+            />
           </div>
         )}
+
+        {useNativeVideo && resolvedVideo ? (
+          /* =========================================================================
+             1. NATIVE IN-PLACE HIGH DEFINITION VIDEO PLAYER
+             - Directly plays inline upon clicking the play button
+             - NEVER redirects to Instagram
+             - Replays cleanly in-place without any "Watch again on Instagram" screen
+             - Completely free of Instagram profile headers, footers, and white bars
+             ========================================================================= */
+          <div className="relative w-full h-full flex items-center justify-center">
+            <video
+              ref={videoRef}
+              src={resolvedVideo}
+              controls={isPlaying}
+              playsInline
+              preload="metadata"
+              className="w-full h-full max-h-[620px] object-contain relative z-10"
+              poster={thumbnailUrl && !thumbnailError ? thumbnailUrl : undefined}
+              onPlay={() => {
+                setIsPlaying(true);
+                setHasEnded(false);
+              }}
+              onPause={() => {
+                // If paused at the end, mark as ended
+                if (videoRef.current && videoRef.current.ended) {
+                  setHasEnded(true);
+                }
+              }}
+              onEnded={() => {
+                setHasEnded(true);
+                setIsPlaying(false);
+              }}
+              onError={() => {
+                console.warn(`Direct MP4 failed for Day ${dayNumber}, falling back to iframe embed`);
+                setUseNativeVideo(false);
+              }}
+            />
+
+            {/* Poster / Initial Play Overlay */}
+            {!isPlaying && !hasEnded && (
+              <button
+                type="button"
+                onClick={handlePlay}
+                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 hover:bg-black/30 transition-all group/btn cursor-pointer"
+                aria-label={`Play Day ${dayNumber} Video`}
+              >
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 p-[2px] shadow-[0_0_35px_rgba(245,158,11,0.55)] group-hover/btn:scale-110 group-hover/btn:shadow-[0_0_45px_rgba(245,158,11,0.85)] transition-all duration-300">
+                  <div className="w-full h-full rounded-full bg-slate-950/90 flex items-center justify-center pl-1">
+                    <Play className="w-7 h-7 sm:w-9 sm:h-9 text-amber-400 fill-amber-400 group-hover/btn:text-amber-300 group-hover/btn:fill-amber-300 transition-colors" />
+                  </div>
+                </div>
+                <span className="mt-3.5 px-3.5 py-1 rounded-full bg-black/75 border border-white/15 text-white text-xs font-bold tracking-wide backdrop-blur-md shadow-lg">
+                  Play Episode Video
+                </span>
+              </button>
+            )}
+
+            {/* Watch Again / Replay Overlay when video reaches end */}
+            {hasEnded && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm transition-all">
+                <button
+                  type="button"
+                  onClick={handleReplay}
+                  className="flex flex-col items-center justify-center group/replay cursor-pointer"
+                  aria-label="Watch video again"
+                >
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 p-[2px] shadow-[0_0_35px_rgba(245,158,11,0.65)] group-hover/replay:scale-110 transition-all duration-300">
+                    <div className="w-full h-full rounded-full bg-slate-950/90 flex items-center justify-center">
+                      <RotateCcw className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 group-hover/replay:text-amber-300 transition-transform duration-300 group-hover/replay:-rotate-45" />
+                    </div>
+                  </div>
+                  <span className="mt-3.5 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-extrabold tracking-wider uppercase shadow-lg">
+                    Watch Again
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : embedUrl ? (
+          /* =========================================================================
+             2. FALLBACK INSTAGRAM IFRAME PLAYER
+             - Scaled to minimize black side space
+             - Pushed up (-54px) to crop out top profile header
+             - Bottom guard overlay completely hides the white footer
+             ========================================================================= */
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            <iframe
+              key={iframeKey}
+              src={embedUrl}
+              className="absolute w-[114%] -left-[7%] top-[-54px] h-[calc(100%+160px)] min-h-[620px] scale-[1.12] sm:scale-[1.16] origin-top bg-black border-0 z-10"
+              frameBorder="0"
+              scrolling="no"
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+              allowFullScreen
+              title={`Day ${dayNumber}: ${title}`}
+            />
+            {/* Solid Bottom Guard Overlay: Conceals Instagram's white footer & clutter */}
+            <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent pointer-events-none z-20" />
+          </div>
+        ) : thumbnailUrl && !thumbnailError ? (
+          /* Fallback Poster */
+          <img
+            src={thumbnailUrl}
+            alt={`Day ${dayNumber} Video`}
+            className="w-full h-full object-cover relative z-10"
+          />
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-xs relative z-10">
+            <InstagramIcon className="w-8 h-8 mb-2 opacity-50" />
+            <span>Video not available</span>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Bar: Clean Direct Actions */}
+      <div className="relative z-10 px-4 py-3 bg-slate-900/90 dark:bg-[#080b11] border-t border-slate-200/90 dark:border-white/10 flex items-center justify-between gap-2.5">
+        <span className="text-xs text-slate-400 font-medium truncate">
+          {title}
+        </span>
+        <div className="flex items-center space-x-2 shrink-0">
+          <button
+            type="button"
+            onClick={handleReplay}
+            className="inline-flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 border border-amber-500/30 text-xs font-semibold transition-all cursor-pointer"
+            title="Replay video directly on page"
+          >
+            <RotateCcw className="w-3 h-3 text-amber-400" />
+            <span>Watch Again</span>
+          </button>
+          {url && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-slate-200 hover:text-white border border-white/10 text-xs font-semibold transition-all"
+              title="Open original Reel on Instagram"
+            >
+              <InstagramIcon className="w-3 h-3 text-pink-500" />
+              <span>Open Reel</span>
+              <ExternalLink className="w-3 h-3 ml-0.5" />
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

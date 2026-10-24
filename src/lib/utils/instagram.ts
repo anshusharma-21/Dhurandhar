@@ -102,5 +102,5 @@ export function validateAndCleanInstagramUrl(rawUrl: string): InstagramValidatio
 export function getInstagramEmbedUrl(canonicalUrl: string): string {
   if (!canonicalUrl) return "";
   const cleaned = canonicalUrl.endsWith("/") ? canonicalUrl : `${canonicalUrl}/`;
-  return `${cleaned}embed/captioned/`;
+  return `${cleaned}embed/`;
 }

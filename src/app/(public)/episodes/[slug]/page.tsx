@@ -132,8 +132,8 @@ export default async function EpisodeDetailPage({ params }: EpisodeDetailPagePro
         )}
       </header>
 
-      {/* 3. Instagram Video Stage (Centered with authentic vertical proportions) */}
-      <div className="max-w-xl mx-auto w-full">
+      {/* 3. Instagram Video Stage (Centered with authentic vertical proportions & minimal side space) */}
+      <div className="max-w-[460px] sm:max-w-[480px] mx-auto w-full">
         <InstagramEmbed
           url={episode.instagram_url}
           dayNumber={episode.day_number}
