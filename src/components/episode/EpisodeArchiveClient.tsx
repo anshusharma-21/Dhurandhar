@@ -46,14 +46,10 @@ export function EpisodeArchiveClient({
   // Sorting
   const sortedEpisodes = [...filteredEpisodes].sort((a, b) => {
     if (sortOrder === "newest") {
-      const timeA = new Date(a.published_at || a.created_at).getTime();
-      const timeB = new Date(b.published_at || b.created_at).getTime();
-      return timeB !== timeA ? timeB - timeA : b.day_number - a.day_number;
+      return b.day_number - a.day_number;
     }
     if (sortOrder === "oldest") {
-      const timeA = new Date(a.published_at || a.created_at).getTime();
-      const timeB = new Date(b.published_at || b.created_at).getTime();
-      return timeA !== timeB ? timeA - timeB : a.day_number - b.day_number;
+      return a.day_number - b.day_number;
     }
     return b.day_number - a.day_number;
   });

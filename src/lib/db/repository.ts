@@ -466,14 +466,12 @@ export const dbRepository = {
         }
 
         const sort = params?.sort || "newest";
-        if (sort === "newest") {
-          query = query.order("published_at", { ascending: false }).order("day_number", { ascending: false });
-        } else if (sort === "oldest") {
-          query = query.order("published_at", { ascending: true }).order("day_number", { ascending: true });
-        } else if (sort === "day_desc") {
-          query = query.order("day_number", { ascending: false });
+        if (sort === "newest" || sort === "day_desc") {
+          query = query.order("day_number", { ascending: false }).order("published_at", { ascending: false });
+        } else if (sort === "oldest" || sort === "day_asc") {
+          query = query.order("day_number", { ascending: true }).order("published_at", { ascending: true });
         } else {
-          query = query.order("day_number", { ascending: true });
+          query = query.order("day_number", { ascending: false });
         }
 
         const page = params?.page || 1;
@@ -515,18 +513,13 @@ export const dbRepository = {
 
     const sort = params?.sort || "newest";
     list.sort((a, b) => {
-      if (sort === "newest") {
-        const timeA = new Date(a.published_at || a.created_at).getTime();
-        const timeB = new Date(b.published_at || b.created_at).getTime();
-        return timeB !== timeA ? timeB - timeA : b.day_number - a.day_number;
+      if (sort === "newest" || sort === "day_desc") {
+        return b.day_number - a.day_number;
       }
-      if (sort === "oldest") {
-        const timeA = new Date(a.published_at || a.created_at).getTime();
-        const timeB = new Date(b.published_at || b.created_at).getTime();
-        return timeA !== timeB ? timeA - timeB : a.day_number - b.day_number;
+      if (sort === "oldest" || sort === "day_asc") {
+        return a.day_number - b.day_number;
       }
-      if (sort === "day_desc") return b.day_number - a.day_number;
-      return a.day_number - b.day_number;
+      return b.day_number - a.day_number;
     });
 
     const page = params?.page || 1;
