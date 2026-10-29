@@ -101,7 +101,7 @@ export function InstagramEmbed({
         )}
       </div>
 
-      {/* Video Player Stage: Full height, proper 9:16 proportions, and zero white bars */}
+      {/* Video Player Stage: Full height, proper 9:16 proportions */}
       <div className="relative flex-1 w-full min-h-[480px] sm:min-h-[540px] max-h-[640px] bg-black overflow-hidden flex items-center justify-center">
         {/* Ambient Blurred Backdrop Glow */}
         {thumbnailUrl && !thumbnailError && (
@@ -121,9 +121,8 @@ export function InstagramEmbed({
              - Directly plays inline upon clicking the play button
              - NEVER redirects to Instagram
              - Replays cleanly in-place without any "Watch again on Instagram" screen
-             - Completely free of Instagram profile headers, footers, and white bars
              ========================================================================= */
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center bg-black">
             <video
               ref={videoRef}
               src={resolvedVideo}
@@ -137,7 +136,6 @@ export function InstagramEmbed({
                 setHasEnded(false);
               }}
               onPause={() => {
-                // If paused at the end, mark as ended
                 if (videoRef.current && videoRef.current.ended) {
                   setHasEnded(true);
                 }
@@ -195,23 +193,19 @@ export function InstagramEmbed({
         ) : embedUrl ? (
           /* =========================================================================
              2. FALLBACK INSTAGRAM IFRAME PLAYER
-             - Scaled to minimize black side space
-             - Pushed up (-54px) to crop out top profile header
-             - Bottom guard overlay completely hides the white footer
+             - Clean, responsive frame without negative-margin cropping
              ========================================================================= */
-          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+          <div className="relative w-full h-full min-h-[520px] flex items-center justify-center overflow-hidden bg-black">
             <iframe
               key={iframeKey}
               src={embedUrl}
-              className="absolute w-[114%] -left-[7%] top-[-54px] h-[calc(100%+160px)] min-h-[620px] scale-[1.12] sm:scale-[1.16] origin-top bg-black border-0 z-10"
+              className="w-full h-full min-h-[520px] max-h-[620px] border-0 z-10"
               frameBorder="0"
               scrolling="no"
               allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
               allowFullScreen
               title={`Day ${dayNumber}: ${title}`}
             />
-            {/* Solid Bottom Guard Overlay: Conceals Instagram's white footer & clutter */}
-            <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent pointer-events-none z-20" />
           </div>
         ) : thumbnailUrl && !thumbnailError ? (
           /* Fallback Poster */

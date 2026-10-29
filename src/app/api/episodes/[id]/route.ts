@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { dbRepository } from "@/lib/db/repository";
 import { validateAndCleanInstagramUrl } from "@/lib/utils/instagram";
 import { verifyAdminAuth } from "@/lib/auth/admin-guard";
+import { syncEpisodeVideoToStorage } from "@/lib/storage/video-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,14 @@ export async function PATCH(
     }
 
     const updated = await dbRepository.updateEpisode(params.id, body);
+
+    // Automatically sync high-definition video into Supabase Storage in the background
+    if (updated?.day_number && updated?.instagram_url) {
+      syncEpisodeVideoToStorage(Number(updated.day_number), updated.instagram_url).catch((err) =>
+        console.warn("Background video sync error:", err.message)
+      );
+    }
+
     try {
       revalidatePath("/");
       revalidatePath("/episodes");

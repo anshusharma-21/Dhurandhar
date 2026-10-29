@@ -4,6 +4,7 @@ import { extractInstagramMedia } from "@/lib/ai/extractor";
 import { verifyAdminAuth } from "@/lib/auth/admin-guard";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 import { AutoFillRequest } from "@/lib/types/ai";
+import { syncEpisodeVideoToStorage } from "@/lib/storage/video-sync";
 
 export const maxDuration = 60; // Allow 60 seconds for audio analysis
 
@@ -132,6 +133,13 @@ export async function POST(req: NextRequest) {
     };
 
     const result = await generateAutoFillEpisode(autoFillPayload);
+
+    // Automatically sync high-definition video into Supabase Storage in the background
+    if (dayNumber && instagramUrl) {
+      syncEpisodeVideoToStorage(Number(dayNumber), instagramUrl).catch((err) =>
+        console.warn("Auto-fill background video sync error:", err.message)
+      );
+    }
 
     // 5. Persist telemetry into Supabase ai_jobs table for audit & operations visibility
     let loggedJobId: string | undefined;
