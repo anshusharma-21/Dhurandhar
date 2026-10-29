@@ -200,9 +200,9 @@ export function EpisodeArchiveClient({
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex flex-col space-y-5">
+          <div className="flex flex-col space-y-4 sm:space-y-5">
             {displayedEpisodes.map((ep) => (
-              <EpisodeCard key={ep.id} episode={ep} />
+              <EpisodeCard key={ep.id} episode={ep} layout="horizontal" />
             ))}
           </div>
 
