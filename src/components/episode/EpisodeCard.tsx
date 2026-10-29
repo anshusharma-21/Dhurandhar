@@ -100,11 +100,11 @@ export function EpisodeCard({ episode, layout = "horizontal" }: EpisodeCardProps
       {/* Top golden hairline accent on hover */}
       <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
 
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 items-stretch">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch">
         {/* =========================================================================
-            LEFT: ROUNDED THUMBNAIL WITH PLAY OVERLAY & BADGE
+            LEFT: ROUNDED THUMBNAIL WITH PLAY OVERLAY
             ========================================================================= */}
-        <div className="relative w-full sm:w-56 md:w-64 shrink-0 rounded-xl overflow-hidden bg-slate-950 aspect-[16/10] sm:aspect-[4/3] flex items-center justify-center group/thumb shadow-xs">
+        <div className="relative w-full sm:w-64 md:w-72 lg:w-80 shrink-0 rounded-xl overflow-hidden bg-slate-950 aspect-[16/10] sm:aspect-[4/3] flex items-center justify-center group/thumb shadow-xs">
           {thumbnailUrl && !thumbError ? (
             <img
               src={thumbnailUrl}
@@ -130,19 +130,12 @@ export function EpisodeCard({ episode, layout = "horizontal" }: EpisodeCardProps
             className="absolute inset-0 flex items-center justify-center z-10"
             aria-label={`Watch Day ${episode.day_number}: ${episode.title}`}
           >
-            <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 p-[2px] shadow-[0_0_16px_rgba(245,158,11,0.55)] group-hover/thumb:scale-110 transition-all duration-300">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 p-[2px] shadow-[0_0_18px_rgba(245,158,11,0.55)] group-hover/thumb:scale-110 transition-all duration-300">
               <div className="w-full h-full rounded-full bg-slate-950/90 flex items-center justify-center pl-0.5">
-                <Play className="w-4 h-4 text-amber-400 fill-amber-400 group-hover/thumb:text-amber-300 transition-colors" />
+                <Play className="w-5 h-5 text-amber-400 fill-amber-400 group-hover/thumb:text-amber-300 transition-colors" />
               </div>
             </div>
           </a>
-
-          {/* Bottom Badge on Thumbnail */}
-          <div className="absolute bottom-2 left-2 z-10 pointer-events-none">
-            <span className="px-2 py-0.5 rounded bg-black/75 text-amber-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-xs">
-              Watch Vlog
-            </span>
-          </div>
         </div>
 
         {/* =========================================================================
