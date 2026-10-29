@@ -37,19 +37,15 @@ export function EpisodeFeed({ episodes }: EpisodeFeedProps) {
         </a>
       </div>
 
-      {/* Grid of 2 Sleek Equal-Height Cards (Latest + 1 Day Old) */}
+      {/* 2 Sleek Recent Episodes (Latest + 1 Day Old) */}
       {displayedEpisodes.length === 0 ? (
         <div className="bg-[#121824] border border-slate-700/60 rounded-2xl p-8 text-center text-xs text-slate-400">
           No published episodes recorded yet. Check back daily.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 items-stretch">
+        <div className="flex flex-col space-y-4">
           {displayedEpisodes.map((ep) => (
-            <div key={ep.id} className="h-full flex">
-              <div className="w-full h-full flex flex-col">
-                <EpisodeCard episode={ep} />
-              </div>
-            </div>
+            <EpisodeCard key={ep.id} episode={ep} />
           ))}
         </div>
       )}

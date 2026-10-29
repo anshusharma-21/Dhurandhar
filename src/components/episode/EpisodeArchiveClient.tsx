@@ -3,7 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { Episode, Tag } from "@/lib/types/episode";
 import { EpisodeCard } from "./EpisodeCard";
-import { Search, Filter, X, Tv, Calendar } from "lucide-react";
+import { Search, Filter, X, Tv, Calendar, ChevronDown } from "lucide-react";
 
 interface EpisodeArchiveClientProps {
   initialEpisodes: Episode[];
@@ -14,11 +14,35 @@ export function EpisodeArchiveClient({
   initialEpisodes,
   availableTags,
 }: EpisodeArchiveClientProps) {
+  const PAGE_SIZE = 6;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const episodes = initialEpisodes;
   const [isPending, startTransition] = useTransition();
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleTagToggle = (slug: string | null) => {
+    setSelectedTag((prev) => (prev === slug ? null : slug));
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const handleSortChange = (order: "newest" | "oldest") => {
+    setSortOrder(order);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedTag(null);
+    setSortOrder("newest");
+    setVisibleCount(PAGE_SIZE);
+  };
 
   // Client-side filtering / searching (instant responsive experience satisfying AC-08)
   const filteredEpisodes = episodes.filter((ep) => {
@@ -54,11 +78,7 @@ export function EpisodeArchiveClient({
     return b.day_number - a.day_number;
   });
 
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedTag(null);
-    setSortOrder("newest");
-  };
+  const displayedEpisodes = sortedEpisodes.slice(0, visibleCount);
 
   const hasActiveFilters = Boolean(searchQuery.trim() || selectedTag || sortOrder !== "newest");
 
@@ -73,14 +93,14 @@ export function EpisodeArchiveClient({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder='Search by "Day 2", hiring, sales, automation...'
               className="w-full bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => handleSearchChange("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
@@ -93,7 +113,7 @@ export function EpisodeArchiveClient({
             <span className="text-slate-600 dark:text-slate-400 shrink-0 font-medium">Sort:</span>
             <select
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as any)}
+              onChange={(e) => handleSortChange(e.target.value as any)}
               className="bg-slate-50 dark:bg-[#070b12] border border-slate-300 dark:border-white/10 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-amber-500 focus:outline-none transition-colors"
             >
               <option value="newest">Latest Published First</option>
@@ -121,7 +141,7 @@ export function EpisodeArchiveClient({
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
-              onClick={() => setSelectedTag(null)}
+              onClick={() => handleTagToggle(null)}
               className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
                 selectedTag === null
                   ? "bg-amber-500 text-slate-950 font-bold border-amber-500 shadow-sm"
@@ -136,7 +156,7 @@ export function EpisodeArchiveClient({
                 <button
                   key={tag.id}
                   type="button"
-                  onClick={() => setSelectedTag(isSelected ? null : tag.slug)}
+                  onClick={() => handleTagToggle(tag.slug)}
                   className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
                     isSelected
                       ? "bg-amber-500 text-slate-950 font-bold border-amber-500 shadow-sm"
@@ -154,10 +174,10 @@ export function EpisodeArchiveClient({
       {/* Results Count & Grid */}
       <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 px-1 font-medium">
         <span>
-          Showing <strong>{sortedEpisodes.length}</strong> of {episodes.length} episodes
+          Showing <strong>{Math.min(displayedEpisodes.length, sortedEpisodes.length)}</strong> of {sortedEpisodes.length} episodes
         </span>
         {selectedTag && (
-          <span className="text-brand-gold font-medium">
+          <span className="text-amber-500 font-medium">
             Filtering by #{availableTags.find((t) => t.slug === selectedTag)?.label}
           </span>
         )}
@@ -179,10 +199,37 @@ export function EpisodeArchiveClient({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedEpisodes.map((ep) => (
-            <EpisodeCard key={ep.id} episode={ep} />
-          ))}
+        <div className="space-y-6">
+          <div className="flex flex-col space-y-4">
+            {displayedEpisodes.map((ep) => (
+              <EpisodeCard key={ep.id} episode={ep} />
+            ))}
+          </div>
+
+          {/* Load More Videos button */}
+          {visibleCount < sortedEpisodes.length && (
+            <div className="flex flex-col items-center justify-center pt-4 pb-2 space-y-2">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+                className="group inline-flex items-center space-x-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg hover:shadow-amber-500/25 active:scale-95 transition-all cursor-pointer"
+              >
+                <span>Load More Videos</span>
+                <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+              </button>
+              <span className="text-[11px] text-slate-500 font-medium">
+                {sortedEpisodes.length - visibleCount} more episode{sortedEpisodes.length - visibleCount === 1 ? "" : "s"} remaining
+              </span>
+            </div>
+          )}
+
+          {visibleCount >= sortedEpisodes.length && sortedEpisodes.length > PAGE_SIZE && (
+            <div className="text-center py-6 border-t border-slate-700/40">
+              <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">
+                You have reached the beginning of the chronicles
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>
