@@ -1,17 +1,12 @@
 import React from "react";
 import { Episode } from "@/lib/types/episode";
-import { formatDate } from "@/lib/utils/formatters";
-import { Calendar, MessageSquare, ArrowRight, Sparkles, Play, ShieldCheck } from "lucide-react";
+import { MessageSquare, ArrowRight, Play, ShieldCheck } from "lucide-react";
 
 interface EpisodeCardProps {
   episode: Episode;
 }
 
 export function EpisodeCard({ episode }: EpisodeCardProps) {
-  const publishedDate = episode.published_at 
-    ? formatDate(episode.published_at) 
-    : formatDate(episode.created_at);
-
   const defaultSummary = episode.summary || 
     `Day ${episode.day_number} chronicle documenting enterprise operations, daily decisions, and strategic revenue milestones on Project Dhurandhar.`;
 
@@ -31,13 +26,6 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
             <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/35 text-amber-300 text-[11px] font-bold uppercase tracking-wider shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               <span>Day {episode.day_number}</span>
-            </div>
-
-            <div className="flex items-center space-x-1.5 text-[11px] font-medium text-slate-400 font-mono">
-              <Calendar className="w-3 h-3 text-amber-500 shrink-0" />
-              <time dateTime={episode.published_at || episode.created_at}>
-                {publishedDate}
-              </time>
             </div>
           </div>
 
@@ -76,13 +64,6 @@ export function EpisodeCard({ episode }: EpisodeCardProps) {
             <MessageSquare className="w-3 h-3 text-amber-400" />
             <span>{episode.comments_count || 0} discussion</span>
           </span>
-
-          {episode.summary_status === "approved" && (
-            <span className="inline-flex items-center space-x-1 text-[10px] text-teal-400 font-semibold bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
-              <Sparkles className="w-2.5 h-2.5 text-teal-400" />
-              <span>Verified Log</span>
-            </span>
-          )}
         </div>
 
         <a

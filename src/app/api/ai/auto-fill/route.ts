@@ -93,9 +93,29 @@ export async function POST(req: NextRequest) {
           mediaBase64 = extracted.mediaBase64;
           mimeType = extracted.mimeType || "video/mp4";
         }
+        if (extracted.error) {
+          linkExtractionNotice = extracted.error;
+        }
       } catch (extractErr: any) {
         console.warn("Instagram extraction non-fatal error:", extractErr.message);
+        linkExtractionNotice = extractErr.message;
       }
+    }
+
+    // Safeguard against hallucination: ensure at least one real source material exists
+    const hasMedia = Boolean(mediaBase64);
+    const hasTranscript = Boolean(transcriptText && transcriptText.trim().length >= 10);
+    const hasCaption = Boolean(captionText && captionText.trim().length >= 15);
+    const hasNotes = Boolean(contextNotes && contextNotes.trim().length >= 10);
+
+    if (!hasMedia && !hasTranscript && !hasCaption && !hasNotes) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not automatically fetch the Reel audio from Instagram due to Meta access restrictions. To generate an accurate episode without guessing, please either add RAPIDAPI_KEY to your .env.local, click 'Upload Reel' to select the video file directly, or provide a brief transcript/context.",
+        },
+        { status: 422 }
+      );
     }
 
     // 4. Generate with Gemini

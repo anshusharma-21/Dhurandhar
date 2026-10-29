@@ -221,10 +221,10 @@ ${req.contextNotes ? `Internal Context Notes: """${req.contextNotes}"""` : ""}
 
 YOUR TASKS:
 ${hasMedia ? "1. Carefully listen to the attached audio/video recording. Transcribe what is spoken accurately in Hindi, Hinglish, or English as spoken (provide the full spoken transcript, do not summarize in the transcript field)." : "1. Review all supplied caption, transcript, and context notes."}
-2. Formulate a catchy, executive-grade Episode Title (e.g., "Building the Core Delivery Engine" or "Day ${req.dayNumber}: Scaling AI Operations").
-3. Formulate an engaging Instagram caption suitable for social media with key highlights and relevant hashtags (#ProjectDhurandhar #AutomationLabs).
-4. Produce a neutral, factual 80-150 word Executive Summary in third-person editorial voice.
-5. Produce 3 to 5 clear, bulleted key strategic takeaways or business decisions.
+2. Formulate a catchy, executive-grade Episode Title based DIRECTLY on the core topic discussed in the episode (e.g., "Day ${req.dayNumber}: Scaling AI Operations"). Do NOT use generic placeholders.
+3. Formulate an engaging Instagram caption reflecting what was actually discussed, with key highlights and relevant hashtags (#ProjectDhurandhar #AutomationLabs).
+4. Produce a neutral, factual 80-150 word Executive Summary in third-person editorial voice based strictly on the spoken dialogue or verified source text. Do NOT invent numbers, client names, or metrics not present in the source material.
+5. Produce 3 to 5 clear, bulleted key strategic takeaways or business decisions mentioned directly in the episode.
 6. Select 2 to 4 most relevant tags strictly from this list:
    ${tagOptions}
 7. Provide a 140-160 character natural SEO meta description.

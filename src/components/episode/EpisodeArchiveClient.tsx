@@ -16,7 +16,7 @@ export function EpisodeArchiveClient({
 }: EpisodeArchiveClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "day_desc">("newest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const episodes = initialEpisodes;
   const [isPending, startTransition] = useTransition();
 
@@ -98,7 +98,6 @@ export function EpisodeArchiveClient({
             >
               <option value="newest">Latest Published First</option>
               <option value="oldest">Earliest First</option>
-              <option value="day_desc">Day Number (Descending)</option>
             </select>
           </div>
         </div>

@@ -41,13 +41,6 @@ export function LatestEpisodeFeature({ episode }: LatestEpisodeFeatureProps) {
             Day {episode.day_number}: The Latest Briefing
           </h2>
         </div>
-
-        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center space-x-1.5 shrink-0 pb-1">
-          <Calendar className="w-3.5 h-3.5 text-amber-500" />
-          <time dateTime={episode.published_at || episode.created_at}>
-            {formatDate(episode.published_at || episode.created_at)}
-          </time>
-        </span>
       </div>
 
       {/* Main Feature Container - Titanium Slate-Navy Palette (Neither Plain White Nor Pure Black) */}
