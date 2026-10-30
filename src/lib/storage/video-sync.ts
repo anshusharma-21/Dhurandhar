@@ -8,9 +8,10 @@ import { getSupabaseAdminClient } from "@/lib/supabase/server";
  */
 export async function syncEpisodeVideoToStorage(
   dayNumber: number,
-  instagramUrl: string
+  instagramUrl: string,
+  existingBufferOrBase64?: Buffer | string
 ): Promise<string | null> {
-  if (!dayNumber || dayNumber <= 0 || !instagramUrl) {
+  if (!dayNumber || dayNumber <= 0) {
     return null;
   }
 
@@ -36,82 +37,95 @@ export async function syncEpisodeVideoToStorage(
       return publicUrl;
     }
 
-    // 2. Fetch direct video stream URL using configured RapidAPI credentials
-    const rapidApiKey =
-      process.env.RAPIDAPI_KEY ||
-      process.env.RAPID_API_KEY ||
-      process.env.INSTAGRAM_RAPIDAPI_KEY;
+    let buffer: Buffer | null = null;
 
-    if (!rapidApiKey) {
-      console.warn("RAPIDAPI_KEY not configured. Skipping automated video storage sync.");
-      return null;
+    // A. Use existing downloaded buffer if provided (fastest, zero extra API calls)
+    if (existingBufferOrBase64) {
+      if (Buffer.isBuffer(existingBufferOrBase64)) {
+        buffer = existingBufferOrBase64;
+      } else if (typeof existingBufferOrBase64 === "string" && existingBufferOrBase64.length > 100) {
+        buffer = Buffer.from(existingBufferOrBase64, "base64");
+      }
     }
 
-    const host =
-      process.env.RAPIDAPI_HOST ||
-      "instagram-downloader-download-instagram-stories-videos4.p.rapidapi.com";
+    // B. If no buffer provided yet, fetch from RapidAPI using working endpoint
+    if (!buffer && instagramUrl) {
+      const rapidApiKey =
+        process.env.RAPIDAPI_KEY ||
+        process.env.RAPID_API_KEY ||
+        process.env.INSTAGRAM_RAPIDAPI_KEY;
 
-    const endpoint = `https://${host}/convert?url=${encodeURIComponent(instagramUrl)}`;
+      if (!rapidApiKey) {
+        console.warn("RAPIDAPI_KEY not configured. Skipping automated video storage sync.");
+        return null;
+      }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
+      const host =
+        process.env.RAPIDAPI_HOST ||
+        "instagram-downloader-download-instagram-videos-stories1.p.rapidapi.com";
 
-    const apiRes = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        "x-rapidapi-key": rapidApiKey,
-        "x-rapidapi-host": host,
-        Accept: "application/json",
-      },
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+      let endpoint = "";
+      if (host.includes("stories1")) {
+        endpoint = `https://${host}/fetch?url=${encodeURIComponent(instagramUrl)}`;
+      } else if (host.includes("stories-videos4")) {
+        endpoint = `https://${host}/convert?url=${encodeURIComponent(instagramUrl)}`;
+      } else {
+        endpoint = `https://${host}/fetch?url=${encodeURIComponent(instagramUrl)}`;
+      }
 
-    if (!apiRes.ok) {
-      console.warn(`RapidAPI video sync request returned status ${apiRes.status}`);
-      return null;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      const apiRes = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          "x-rapidapi-key": rapidApiKey,
+          "x-rapidapi-host": host,
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (apiRes.ok) {
+        const json = await apiRes.json().catch(() => null);
+        if (json) {
+          let downloadUrl: string | undefined;
+
+          if (Array.isArray(json.media) && json.media.length > 0) {
+            const videoItem = json.media.find((m: any) => m.type === "video") || json.media[0];
+            downloadUrl = videoItem.url || videoItem.media || videoItem.download_url;
+          }
+
+          if (!downloadUrl) {
+            downloadUrl =
+              json.download_url ||
+              json.url ||
+              json.video ||
+              json.video_url ||
+              json.result?.download_url ||
+              json.data?.video ||
+              json.data?.url ||
+              json.data?.download_url;
+          }
+
+          if (downloadUrl && typeof downloadUrl === "string") {
+            const vidRes = await fetch(downloadUrl);
+            if (vidRes.ok) {
+              const arrayBuf = await vidRes.arrayBuffer();
+              buffer = Buffer.from(arrayBuf);
+            }
+          }
+        }
+      }
     }
 
-    const json = await apiRes.json();
-    let downloadUrl: string | undefined;
-
-    if (Array.isArray(json.media) && json.media.length > 0) {
-      const videoItem = json.media.find((m: any) => m.type === "video") || json.media[0];
-      downloadUrl = videoItem.url || videoItem.media || videoItem.download_url;
-    }
-
-    if (!downloadUrl) {
-      downloadUrl =
-        json.media ||
-        json.url ||
-        json.video ||
-        json.video_url ||
-        json.download_url ||
-        json.data?.video ||
-        json.data?.url;
-    }
-
-    if (!downloadUrl || typeof downloadUrl !== "string") {
+    if (!buffer || buffer.length < 50000) {
       console.warn(`Could not resolve downloadable MP4 stream for Day ${dayNumber}`);
       return null;
     }
 
-    // 3. Download the MP4 stream
-    const vidRes = await fetch(downloadUrl);
-    if (!vidRes.ok) {
-      console.warn(`Failed to fetch MP4 stream from CDN for Day ${dayNumber}: ${vidRes.status}`);
-      return null;
-    }
-
-    const arrayBuf = await vidRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuf);
-
-    if (buffer.length < 50000) {
-      console.warn(`Downloaded video buffer too small (${buffer.length} bytes) for Day ${dayNumber}`);
-      return null;
-    }
-
-    // 4. Upload to Supabase Storage with public access
+    // Upload to Supabase Storage with public access
     const { error: upErr } = await supabase.storage
       .from("media")
       .upload(filename, buffer, {

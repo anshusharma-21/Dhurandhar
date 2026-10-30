@@ -135,8 +135,8 @@ export async function POST(req: NextRequest) {
     const result = await generateAutoFillEpisode(autoFillPayload);
 
     // Automatically sync high-definition video into Supabase Storage in the background
-    if (dayNumber && instagramUrl) {
-      syncEpisodeVideoToStorage(Number(dayNumber), instagramUrl).catch((err) =>
+    if (dayNumber) {
+      syncEpisodeVideoToStorage(Number(dayNumber), instagramUrl || "", mediaBase64).catch((err) =>
         console.warn("Auto-fill background video sync error:", err.message)
       );
     }

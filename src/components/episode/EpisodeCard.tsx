@@ -96,25 +96,25 @@ export function EpisodeCard({ episode, layout = "horizontal" }: EpisodeCardProps
   // HORIZONTAL LAYOUT (Dedicated for Episodes Archive Feed)
   // =========================================================================
   return (
-    <article className="group relative overflow-hidden bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/60 dark:hover:border-amber-400/50 rounded-2xl p-4 sm:p-5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg shadow-sm">
+    <article className="group relative overflow-hidden bg-white dark:bg-[#0c121e] border border-slate-200/90 dark:border-slate-800 hover:border-amber-500/60 dark:hover:border-amber-400/50 rounded-2xl p-3 sm:p-3.5 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg shadow-sm">
       {/* Top golden hairline accent on hover */}
       <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
 
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-stretch">
+      <div className="flex flex-row gap-3 sm:gap-4 items-stretch">
         {/* =========================================================================
-            LEFT: ROUNDED THUMBNAIL WITH PLAY OVERLAY
+            LEFT: ROUNDED 9:16 VERTICAL REEL THUMBNAIL (FULL REEL, NO CUTTING)
             ========================================================================= */}
-        <div className="relative w-full sm:w-64 md:w-72 lg:w-80 shrink-0 rounded-xl overflow-hidden bg-slate-950 aspect-[16/10] sm:aspect-[4/3] flex items-center justify-center group/thumb shadow-xs">
+        <div className="relative w-24 sm:w-32 md:w-36 shrink-0 rounded-xl overflow-hidden bg-slate-950 aspect-[9/16] flex items-center justify-center group/thumb shadow-xs">
           {thumbnailUrl && !thumbError ? (
             <img
               src={thumbnailUrl}
               alt={`Day ${episode.day_number}: ${episode.title}`}
-              className="w-full h-full object-cover object-top group-hover/thumb:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover object-center group-hover/thumb:scale-105 transition-transform duration-500"
               onError={() => setThumbError(true)}
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-slate-500">
-              <Film className="w-8 h-8 text-amber-500/60 mb-1" />
+              <Film className="w-6 h-6 text-amber-500/60 mb-1" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Day {episode.day_number}
               </span>
@@ -122,7 +122,7 @@ export function EpisodeCard({ episode, layout = "horizontal" }: EpisodeCardProps
           )}
 
           {/* Gradient dark overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
           {/* Play Button Overlay */}
           <a
@@ -130,9 +130,9 @@ export function EpisodeCard({ episode, layout = "horizontal" }: EpisodeCardProps
             className="absolute inset-0 flex items-center justify-center z-10"
             aria-label={`Watch Day ${episode.day_number}: ${episode.title}`}
           >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 p-[2px] shadow-[0_0_18px_rgba(245,158,11,0.55)] group-hover/thumb:scale-110 transition-all duration-300">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-tr from-amber-500 to-amber-300 p-[2px] shadow-[0_0_15px_rgba(245,158,11,0.55)] group-hover/thumb:scale-110 transition-all duration-300">
               <div className="w-full h-full rounded-full bg-slate-950/90 flex items-center justify-center pl-0.5">
-                <Play className="w-5 h-5 text-amber-400 fill-amber-400 group-hover/thumb:text-amber-300 transition-colors" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 fill-amber-400 group-hover/thumb:text-amber-300 transition-colors" />
               </div>
             </div>
           </a>

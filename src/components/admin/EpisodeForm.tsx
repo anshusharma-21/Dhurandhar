@@ -140,9 +140,20 @@ export function EpisodeForm({ initialEpisode, availableTags }: EpisodeFormProps)
         });
       }
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error(
+          responseText.length > 0 && responseText.length < 200
+            ? responseText
+            : "Server request timed out or returned an invalid response. Please try again."
+        );
+      }
+
       if (!res.ok) {
-        throw new Error(data.error || "Failed to auto-generate episode content.");
+        throw new Error(data?.error || "Failed to auto-generate episode content.");
       }
 
       // Auto-populate all form fields

@@ -38,6 +38,7 @@ export async function extractInstagramMedia(rawUrl: string): Promise<ExtractedIn
   if (rapidApiKey && !rapidApiKey.includes("your-rapidapi")) {
     const rapidHosts = [
       process.env.RAPIDAPI_HOST,
+      "instagram-downloader-download-instagram-videos-stories1.p.rapidapi.com",
       "instagram-downloader-download-instagram-videos-stories.p.rapidapi.com",
       "social-media-video-downloader.p.rapidapi.com",
       "instagram-reels-download.p.rapidapi.com",
@@ -47,7 +48,9 @@ export async function extractInstagramMedia(rawUrl: string): Promise<ExtractedIn
       if (foundVideoUrl) break;
       try {
         let endpoint = "";
-        if (host.includes("stories-videos4")) {
+        if (host.includes("stories1")) {
+          endpoint = `https://${host}/fetch?url=${encodeURIComponent(canonicalUrl)}`;
+        } else if (host.includes("stories-videos4")) {
           endpoint = `https://${host}/convert?url=${encodeURIComponent(canonicalUrl)}`;
         } else if (host === "instagram-downloader-download-instagram-videos-stories.p.rapidapi.com") {
           endpoint = `https://${host}/index?url=${encodeURIComponent(canonicalUrl)}`;
@@ -56,7 +59,7 @@ export async function extractInstagramMedia(rawUrl: string): Promise<ExtractedIn
         } else if (host === "instagram-reels-download.p.rapidapi.com") {
           endpoint = `https://${host}/reel?url=${encodeURIComponent(canonicalUrl)}`;
         } else {
-          endpoint = `https://${host}/convert?url=${encodeURIComponent(canonicalUrl)}`;
+          endpoint = `https://${host}/fetch?url=${encodeURIComponent(canonicalUrl)}`;
         }
 
         const controller = new AbortController();
@@ -95,6 +98,8 @@ export async function extractInstagramMedia(rawUrl: string): Promise<ExtractedIn
                 json.data?.url ||
                 json.data?.media ||
                 json.data?.download_url ||
+                json.result?.download_url ||
+                json.result?.url ||
                 json.links?.[0]?.link ||
                 json.result?.[0]?.url;
             }
@@ -104,11 +109,11 @@ export async function extractInstagramMedia(rawUrl: string): Promise<ExtractedIn
             }
 
             const candidateCaption =
-              json.title ||
               json.caption ||
+              json.title ||
               json.description ||
-              json.data?.title ||
-              json.data?.caption;
+              json.data?.caption ||
+              json.data?.title;
 
             if (typeof candidateCaption === "string" && candidateCaption.trim().length > 5) {
               foundCaption = candidateCaption.trim();
